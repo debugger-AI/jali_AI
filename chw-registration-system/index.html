@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jali.ai - AI-Powered Health for Every Mother, Every Child</title>
+    <meta name="description"
+        content="Bringing accessible, compassionate healthcare guidance to underserved communities worldwide.">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <style>
+        /* =====================================================
+           JALI.AI LANDING PAGE STYLES
+           AI-Powered Health for Every Mother, Every Child
+           ===================================================== */
+
+        :root {
+            /* Brand Colors */
+            --primary-50: #fdf4ff;
+            --primary-100: #fae8ff;
+            --primary-200: #f5d0fe;
+            --primary-300: #f0abfc;
+            --primary-400: #e879f9;
+            --primary-500: #d946ef;
+            --primary-600: #c026d3;
+            --primary-700: #a21caf;
+            --primary-800: #86198f;
+            --primary-900: #701a75;
+
+            /* Accent Colors - Teal for health */
+            --accent-50: #f0fdfa;
+            --accent-100: #ccfbf1;
+            --accent-200: #99f6e4;
+            --accent-300: #5eead4;
+            --accent-400: #2dd4bf;
+            --accent-500: #14b8a6;
+            --accent-600: #0d9488;
+            --accent-700: #0f766e;
+            --accent-800: #115e59;
+            --accent-900: #134e4a;
+
+            /* Warm Colors */
+            --warm-50: #fffbeb;
+            --warm-100: #fef3c7;
+            --warm-200: #fde68a;
+            --warm-300: #fcd34d;
+            --warm-400: #fbbf24;
+            --warm-500: #f59e0b;
+
+            /* Rose for care */
+            --rose-50: #fff1f2;
+            --rose-100: #ffe4e6;
+            --rose-400: #fb7185;
+            --rose-500: #f43f5e;
+            --rose-600: #e11d48;
+
+            /* Neutrals */
+            --gray-50: #fafafa;
+            --gray-100: #f4f4f5;
+            --gray-200: #e4e4e7;
+            --gray-300: #d4d4d8;
+            --gray-400: #a1a1aa;
+            --gray-500: #71717a;
+            --gray-600: #52525b;
+            --gray-700: #3f3f46;
+            --gray-800: #27272a;
+            --gray-900: #18181b;
+            --gray-950: #09090b;
+
+            /* Gradients */
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            --gradient-hero: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            --gradient-accent: linear-gradient(135deg, #14b8a6 0%, #0ea5e9 100%);
+            --gradient-warm: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+            --gradient-card: linear-gradient(145deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+
+            /* Spacing */
+            --section-padding: 6rem;
+            --container-max: 1280px;
+
+            /* Shadows */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+            --shadow-glow: 0 0 40px rgba(217, 70, 239, 0.3);
+            --shadow-glow-teal: 0 0 40px rgba(20, 184, 166, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--gray-950);
+            color: var(--gray-100);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* =====================================================
+           NAVIGATION
+           ===================================================== */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            padding: 1rem 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .navbar.scrolled {
+            background: rgba(9, 9, 11, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-container {
+            max-width: var(--container-max);
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-accent);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #fff 0%, var(--accent-300) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--gray-300);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.95rem;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: #fff;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--gradient-accent);
+            transition: width 0.3s;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-cta {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: none;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--gray-300);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-ghost:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+
+        .btn-primary {
+            background: var(--gradient-accent);
+            color: #fff;
+            box-shadow: var(--shadow-glow-teal);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 60px rgba(20, 184, 166, 0.4);
+        }
+
+        .btn-large {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 16px;
+        }
+
+        .mobile-menu-toggle {
+            display: none;
+            flex-direction: column;
+            gap: 5px;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+
+        .mobile-menu-toggle span {
+            width: 25px;
+            height: 2px;
+            background: var(--gray-300);
+            transition: all 0.3s;
+        }
+
+        /* =====================================================
+           HERO SECTION
+           ===================================================== */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            position: relative;
+            padding: 8rem 2rem 6rem;
+            overflow: hidden;
+        }
+
+        .hero-bg {
+            position: absolute;
+            inset: 0;
+            background: var(--gradient-hero);
+            z-index: -2;
+        }
+
+        .hero-glow {
+            position: absolute;
+            width: 800px;
+            height: 800px;
+            border-radius: 50%;
+            filter: blur(120px);
+            z-index: -1;
+            opacity: 0.4;
+        }
+
+        .hero-glow-1 {
+            top: -200px;
+            right: -200px;
+            background: var(--primary-600);
+        }
+
+        .hero-glow-2 {
+            bottom: -300px;
+            left: -200px;
+            background: var(--accent-600);
+        }
+
+        .hero-glow-3 {
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--rose-600);
+            opacity: 0.2;
+            width: 600px;
+            height: 600px;
+        }
+
+        .hero-container {
+            max-width: var(--container-max);
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(20, 184, 166, 0.1);
+            border: 1px solid rgba(20, 184, 166, 0.3);
+            border-radius: 50px;
+            font-size: 0.875rem;
+            color: var(--accent-300);
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-badge-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent-400);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(1.2);
+            }
+        }
+
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-title-gradient {
+            background: linear-gradient(135deg, var(--accent-300) 0%, var(--primary-400) 50%, var(--rose-400) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.25rem;
+            color: var(--gray-400);
+            margin-bottom: 2.5rem;
+            max-width: 540px;
+            line-height: 1.7;
+        }
+
+        .hero-cta {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 3rem;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 3rem;
+        }
+
+        .stat-item {
+            text-align: left;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, var(--accent-300) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            color: var(--gray-500);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .hero-visual {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .hero-image-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .hero-image {
+            width: 100%;
+            height: auto;
+            border-radius: 32px;
+            box-shadow: var(--shadow-xl);
+        }
+
+        .hero-card {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            animation: float 4s ease-in-out infinite;
+        }
+
+        .hero-card-1 {
+            top: 10%;
+            left: -60px;
+            animation-delay: 0s;
+        }
+
+        .hero-card-2 {
+            bottom: 20%;
+            right: -40px;
+            animation-delay: 1s;
+        }
+
+        .hero-card-3 {
+            bottom: 5%;
+            left: 10%;
+            animation-delay: 2s;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .hero-card-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .hero-card-icon.teal {
+            background: var(--accent-500);
+        }
+
+        .hero-card-icon.rose {
+            background: var(--rose-500);
+        }
+
+        .hero-card-icon.purple {
+            background: var(--primary-500);
+        }
+
+        .hero-card-text {
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .hero-card-text small {
+            display: block;
+            color: var(--gray-400);
+            font-size: 0.75rem;
+            font-weight: 400;
+        }
+
+        /* =====================================================
+           FEATURES SECTION
+           ===================================================== */
+        .features {
+            padding: var(--section-padding) 2rem;
+            position: relative;
+        }
+
+        .section-container {
+            max-width: var(--container-max);
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 4rem;
+        }
+
+        .section-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(217, 70, 239, 0.1);
+            border: 1px solid rgba(217, 70, 239, 0.3);
+            border-radius: 50px;
+            font-size: 0.875rem;
+            color: var(--primary-300);
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+
+        .section-subtitle {
+            font-size: 1.125rem;
+            color: var(--gray-400);
+            line-height: 1.7;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: var(--gradient-card);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 2rem;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent 0%, rgba(20, 184, 166, 0.05) 100%);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(20, 184, 166, 0.3);
+            box-shadow: var(--shadow-glow-teal);
+        }
+
+        .feature-card:hover::before {
+            opacity: 1;
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-icon.gradient-1 {
+            background: linear-gradient(135deg, var(--accent-500), var(--accent-600));
+        }
+
+        .feature-icon.gradient-2 {
+            background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
+        }
+
+        .feature-icon.gradient-3 {
+            background: linear-gradient(135deg, var(--rose-500), var(--rose-600));
+        }
+
+        .feature-icon.gradient-4 {
+            background: linear-gradient(135deg, var(--warm-400), var(--warm-500));
+        }
+
+        .feature-icon.gradient-5 {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        }
+
+        .feature-icon.gradient-6 {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
+
+        .feature-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-description {
+            color: var(--gray-400);
+            font-size: 0.95rem;
+            line-height: 1.6;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* =====================================================
+           HOW IT WORKS
+           ===================================================== */
+        .how-it-works {
+            padding: var(--section-padding) 2rem;
+            background: linear-gradient(180deg, transparent 0%, rgba(20, 184, 166, 0.03) 100%);
+        }
+
+        .steps-container {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+            position: relative;
+        }
+
+        .steps-container::before {
+            content: '';
+            position: absolute;
+            top: 40px;
+            left: 10%;
+            right: 10%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent-500), var(--primary-500), var(--rose-500), transparent);
+            opacity: 0.3;
+        }
+
+        .step-card {
+            text-align: center;
+            position: relative;
+        }
+
+        .step-number {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            background: var(--gradient-card);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 800;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s;
+        }
+
+        .step-card:hover .step-number {
+            border-color: var(--accent-500);
+            box-shadow: var(--shadow-glow-teal);
+            transform: scale(1.1);
+        }
+
+        .step-number span {
+            background: var(--gradient-accent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .step-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .step-description {
+            color: var(--gray-400);
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+
+        /* =====================================================
+           IMPACT SECTION
+           ===================================================== */
+        .impact {
+            padding: var(--section-padding) 2rem;
+            position: relative;
+        }
+
+        .impact-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 2rem;
+        }
+
+        .impact-card {
+            background: var(--gradient-card);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 2rem;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .impact-card:hover {
+            transform: translateY(-6px);
+            border-color: rgba(217, 70, 239, 0.3);
+        }
+
+        .impact-value {
+            font-size: 3rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+
+        .impact-card:nth-child(1) .impact-value {
+            background: var(--gradient-accent);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .impact-card:nth-child(2) .impact-value {
+            background: linear-gradient(135deg, var(--primary-400), var(--rose-400));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .impact-card:nth-child(3) .impact-value {
+            background: linear-gradient(135deg, var(--warm-400), var(--rose-400));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .impact-card:nth-child(4) .impact-value {
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .impact-label {
+            color: var(--gray-400);
+            font-size: 0.95rem;
+        }
+
+        /* =====================================================
+           CTA SECTION
+           ===================================================== */
+        .cta-section {
+            padding: var(--section-padding) 2rem;
+        }
+
+        .cta-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(217, 70, 239, 0.1) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 32px;
+            padding: 4rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-container::before {
+            content: '';
+            position: absolute;
+            top: -100px;
+            right: -100px;
+            width: 300px;
+            height: 300px;
+            background: var(--accent-500);
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.2;
+        }
+
+        .cta-container::after {
+            content: '';
+            position: absolute;
+            bottom: -100px;
+            left: -100px;
+            width: 300px;
+            height: 300px;
+            background: var(--primary-500);
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.2;
+        }
+
+        .cta-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-subtitle {
+            font-size: 1.125rem;
+            color: var(--gray-400);
+            margin-bottom: 2rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* =====================================================
+           FOOTER
+           ===================================================== */
+        .footer {
+            padding: 4rem 2rem 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .footer-container {
+            max-width: var(--container-max);
+            margin: 0 auto;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr;
+            gap: 3rem;
+            margin-bottom: 3rem;
+        }
+
+        .footer-brand p {
+            color: var(--gray-400);
+            font-size: 0.95rem;
+            margin-top: 1rem;
+            max-width: 300px;
+            line-height: 1.7;
+        }
+
+        .footer-column h4 {
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--gray-300);
+            margin-bottom: 1.25rem;
+        }
+
+        .footer-column ul {
+            list-style: none;
+        }
+
+        .footer-column li {
+            margin-bottom: 0.75rem;
+        }
+
+        .footer-column a {
+            color: var(--gray-500);
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: color 0.3s;
+        }
+
+        .footer-column a:hover {
+            color: var(--accent-400);
+        }
+
+        .footer-bottom {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .footer-bottom p {
+            color: var(--gray-500);
+            font-size: 0.875rem;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .social-links a {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            color: var(--gray-400);
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+
+        .social-links a:hover {
+            background: var(--accent-500);
+            color: #fff;
+            transform: translateY(-2px);
+        }
+
+        /* =====================================================
+           RESPONSIVE DESIGN
+           ===================================================== */
+        @media (max-width: 1024px) {
+            .hero-container {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .hero-subtitle,
+            .hero-cta,
+            .hero-stats {
+                justify-content: center;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            .hero-visual {
+                order: -1;
+                margin-bottom: 2rem;
+            }
+
+            .hero-card {
+                display: none;
+            }
+
+            .features-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .steps-container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .steps-container::before {
+                display: none;
+            }
+
+            .impact-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+
+            .nav-links,
+            .nav-cta {
+                display: none;
+            }
+
+            .mobile-menu-toggle {
+                display: flex;
+            }
+
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .features-grid,
+            .steps-container,
+            .impact-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-stats {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+
+            .stat-item {
+                text-align: center;
+            }
+
+            .cta-container {
+                padding: 2rem;
+            }
+
+            .cta-buttons {
+                flex-direction: column;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr;
+                text-align: center;
+            }
+
+            .footer-brand {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .footer-bottom {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="/" class="logo">
+                <div class="logo-icon">🌍</div>
+                <span class="logo-text">Jali.ai</span>
+            </a>
+
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#how-it-works">How It Works</a></li>
+                <li><a href="#impact">Our Impact</a></li>
+                <li><a href="#about">About</a></li>
+            </ul>
+
+            <div class="nav-cta">
+                <a href="app.html" class="btn btn-ghost">Sign In</a>
+                <a href="app.html" class="btn btn-primary">Get Started</a>
+            </div>
+
+            <div class="mobile-menu-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-glow hero-glow-1"></div>
+        <div class="hero-glow hero-glow-2"></div>
+        <div class="hero-glow hero-glow-3"></div>
+
+        <div class="hero-container">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="hero-badge-dot"></span>
+                    AI-Powered Community Health
+                </div>
+
+                <h1 class="hero-title">
+                    Health for <br>
+                    <span class="hero-title-gradient">Every Mother,<br>Every Child</span>
+                </h1>
+
+                <p class="hero-subtitle">
+                    Bringing accessible, compassionate healthcare guidance to underserved communities worldwide.
+                    Empowering Community Health Workers with AI-driven tools to save lives.
+                </p>
+
+                <div class="hero-cta">
+                    <a href="app.html" class="btn btn-primary btn-large">
+                        Start Registration
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                    </a>
+                    <a href="#how-it-works" class="btn btn-ghost btn-large">
+                        Learn More
+                    </a>
+                </div>
+
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">50K+</div>
+                        <div class="stat-label">Lives Touched</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">200+</div>
+                        <div class="stat-label">CHWs Active</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">47</div>
+                        <div class="stat-label">Counties</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-visual">
+                <div class="hero-image-container">
+                    <svg viewBox="0 0 400 400" class="hero-image"
+                        style="background: linear-gradient(135deg, #1e3a5f 0%, #0f2847 100%); border-radius: 32px;">
+                        <!-- Mother and Child illustration -->
+                        <defs>
+                            <linearGradient id="skinGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#d4a574" />
+                                <stop offset="100%" style="stop-color:#c49464" />
+                            </linearGradient>
+                            <linearGradient id="clothGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#14b8a6" />
+                                <stop offset="100%" style="stop-color:#0d9488" />
+                            </linearGradient>
+                        </defs>
+                        <!-- Abstract shapes representing care -->
+                        <circle cx="200" cy="180" r="120" fill="url(#clothGrad)" opacity="0.2" />
+                        <circle cx="200" cy="180" r="80" fill="url(#clothGrad)" opacity="0.3" />
+                        <circle cx="200" cy="180" r="50" fill="url(#clothGrad)" opacity="0.5" />
+                        <!-- Heart symbol -->
+                        <path
+                            d="M200 280 C140 230, 120 180, 160 150 C180 135, 200 150, 200 170 C200 150, 220 135, 240 150 C280 180, 260 230, 200 280"
+                            fill="#f43f5e" opacity="0.8" />
+                        <!-- Plus signs for health -->
+                        <g fill="#fff" opacity="0.6">
+                            <rect x="320" y="80" width="8" height="24" rx="4" />
+                            <rect x="312" y="88" width="24" height="8" rx="4" />
+                            <rect x="60" y="280" width="6" height="18" rx="3" />
+                            <rect x="54" y="286" width="18" height="6" rx="3" />
+                            <rect x="340" y="300" width="6" height="18" rx="3" />
+                            <rect x="334" y="306" width="18" height="6" rx="3" />
+                        </g>
+                        <!-- Circular motion lines -->
+                        <circle cx="200" cy="180" r="140" fill="none" stroke="#14b8a6" stroke-width="0.5"
+                            stroke-dasharray="10 5" opacity="0.4" />
+                        <circle cx="200" cy="180" r="160" fill="none" stroke="#d946ef" stroke-width="0.5"
+                            stroke-dasharray="15 10" opacity="0.3" />
+                    </svg>
+
+                    <div class="hero-card hero-card-1">
+                        <div class="hero-card-icon teal">🩺</div>
+                        <div class="hero-card-text">
+                            Health Check
+                            <small>AI-Assisted</small>
+                        </div>
+                    </div>
+
+                    <div class="hero-card hero-card-2">
+                        <div class="hero-card-icon rose">👶</div>
+                        <div class="hero-card-text">
+                            Child Registered
+                            <small>Just now</small>
+                        </div>
+                    </div>
+
+                    <div class="hero-card hero-card-3">
+                        <div class="hero-card-icon purple">💉</div>
+                        <div class="hero-card-text">
+                            Immunization Due
+                            <small>Reminder sent</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="section-container">
+            <div class="section-header">
+                <div class="section-badge">✨ Features</div>
+                <h2 class="section-title">Empowering Community Health</h2>
+                <p class="section-subtitle">
+                    Our comprehensive platform provides CHWs with the tools they need to deliver quality healthcare to
+                    every family.
+                </p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon gradient-1">📋</div>
+                    <h3 class="feature-title">OVC Registration</h3>
+                    <p class="feature-description">
+                        Easily register orphans and vulnerable children with comprehensive health and demographic data
+                        capture.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon gradient-2">🤖</div>
+                    <h3 class="feature-title">AI Health Assistant</h3>
+                    <p class="feature-description">
+                        Get instant health guidance powered by AI, trained on maternal and child health best practices.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon gradient-3">💉</div>
+                    <h3 class="feature-title">Immunization Tracking</h3>
+                    <p class="feature-description">
+                        Track vaccination schedules, send reminders, and ensure no child misses critical immunizations.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon gradient-4">🏥</div>
+                    <h3 class="feature-title">HIV Care Linkage</h3>
+                    <p class="feature-description">
+                        Connect HIV-positive individuals to care facilities, track ART status, and monitor viral
+                        suppression.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon gradient-5">👨‍👩‍👧</div>
+                    <h3 class="feature-title">Caregiver Management</h3>
+                    <p class="feature-description">
+                        Maintain detailed caregiver information and relationships to strengthen family support systems.
+                    </p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon gradient-6">📊</div>
+                    <h3 class="feature-title">Real-time Reports</h3>
+                    <p class="feature-description">
+                        Generate instant reports on health metrics, program coverage, and community health indicators.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works" id="how-it-works">
+        <div class="section-container">
+            <div class="section-header">
+                <div class="section-badge">🚀 Process</div>
+                <h2 class="section-title">How Jali.ai Works</h2>
+                <p class="section-subtitle">
+                    A simple, intuitive process designed for Community Health Workers in the field.
+                </p>
+            </div>
+
+            <div class="steps-container">
+                <div class="step-card">
+                    <div class="step-number"><span>1</span></div>
+                    <h3 class="step-title">Register</h3>
+                    <p class="step-description">Create profiles for mothers, children, and families in your community
+                    </p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number"><span>2</span></div>
+                    <h3 class="step-title">Assess</h3>
+                    <p class="step-description">Use AI-powered tools to assess health status and identify risks</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number"><span>3</span></div>
+                    <h3 class="step-title">Connect</h3>
+                    <p class="step-description">Link individuals to care facilities and support services</p>
+                </div>
+
+                <div class="step-card">
+                    <div class="step-number"><span>4</span></div>
+                    <h3 class="step-title">Follow Up</h3>
+                    <p class="step-description">Track progress, send reminders, and ensure continuity of care</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Impact Section -->
+    <section class="impact" id="impact">
+        <div class="section-container">
+            <div class="section-header">
+                <div class="section-badge">📈 Impact</div>
+                <h2 class="section-title">Making a Difference</h2>
+                <p class="section-subtitle">
+                    Real results from communities using Jali.ai
+                </p>
+            </div>
+
+            <div class="impact-grid">
+                <div class="impact-card">
+                    <div class="impact-value">50,000+</div>
+                    <div class="impact-label">OVCs Registered</div>
+                </div>
+
+                <div class="impact-card">
+                    <div class="impact-value">95%</div>
+                    <div class="impact-label">Immunization Coverage</div>
+                </div>
+
+                <div class="impact-card">
+                    <div class="impact-value">89%</div>
+                    <div class="impact-label">Viral Suppression Rate</div>
+                </div>
+
+                <div class="impact-card">
+                    <div class="impact-value">47</div>
+                    <div class="impact-label">Counties Covered</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="section-container">
+            <div class="cta-container">
+                <h2 class="cta-title">Ready to Transform Community Health?</h2>
+                <p class="cta-subtitle">
+                    Join thousands of Community Health Workers using Jali.ai to save lives every day.
+                </p>
+                <div class="cta-buttons">
+                    <a href="app.html" class="btn btn-primary btn-large">
+                        Start Now — It's Free
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                    </a>
+                    <a href="#" class="btn btn-ghost btn-large">Contact Us</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="/" class="logo">
+                        <div class="logo-icon">🌍</div>
+                        <span class="logo-text">Jali.ai</span>
+                    </a>
+                    <p>Bringing accessible, compassionate healthcare guidance to underserved communities worldwide.</p>
+                </div>
+
+                <div class="footer-column">
+                    <h4>Product</h4>
+                    <ul>
+                        <li><a href="#features">Features</a></li>
+                        <li><a href="#how-it-works">How It Works</a></li>
+                        <li><a href="#">Pricing</a></li>
+                        <li><a href="#">API</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-column">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="#">Documentation</a></li>
+                        <li><a href="#">Training</a></li>
+                        <li><a href="#">Support</a></li>
+                        <li><a href="#">Blog</a></li>
+                    </ul>
+                </div>
+
+                <div class="footer-column">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Partners</a></li>
+                        <li><a href="#">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <p>© 2026 Jali.ai. All rights reserved.</p>
+                <div class="social-links">
+                    <a href="#" aria-label="Twitter">𝕏</a>
+                    <a href="#" aria-label="LinkedIn">in</a>
+                    <a href="#" aria-label="GitHub">⌘</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Navbar scroll effect
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Animate elements on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.feature-card, .step-card, .impact-card').forEach(el => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(30px)';
+            el.style.transition = 'all 0.6s ease';
+            observer.observe(el);
+        });
+    </script>
+</body>
+
+</html>
