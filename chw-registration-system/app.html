@@ -63,6 +63,12 @@
                 </svg>
                 <span>Caregivers</span>
             </a>
+            <a href="#" class="nav-item" data-section="health">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                </svg>
+                <span>Health Tracking</span>
+            </a>
             <a href="#" class="nav-item" data-section="reports">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <line x1="18" y1="20" x2="18" y2="10" />
@@ -228,6 +234,26 @@
             <!-- Reports Section (Rendered by JS) -->
             <section class="content-section" id="reportsSection">
                 <!-- Reports rendered by app.js -->
+            </section>
+
+            <!-- Health Tracking Section -->
+            <section class="content-section" id="healthSection">
+                <div class="health-tracking-container">
+                    <div class="tabs-header">
+                        <button class="tab-btn active" data-tab="immunization">Immunization (KEPI)</button>
+                        <button class="tab-btn" data-tab="menstrual">Menstrual Tracking</button>
+                        <button class="tab-btn" data-tab="adherence">Drug Adherence</button>
+                    </div>
+                    <div class="tab-content active" id="immunizationTab">
+                        <!-- Rendered by app.js -->
+                    </div>
+                    <div class="tab-content" id="menstrualTab">
+                        <!-- Rendered by app.js -->
+                    </div>
+                    <div class="tab-content" id="adherenceTab">
+                        <!-- Rendered by app.js -->
+                    </div>
+                </div>
             </section>
         </div>
     </main>

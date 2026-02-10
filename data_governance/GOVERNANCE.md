@@ -12,6 +12,12 @@ We define the following security classifications to be propagated through the sy
 | **SENSITIVE_HEALTH** | Medical/Health Data | `hiv_status`, `viral_load`, `art_status` | **Strictly Restricted**. Only active CHVs linked to the specific OVC access this. |
 | **LOCATION_DATA** | Geographic Info | `ward_id`, `household` | Aggregate-only for reporting users. |
 
+## 2. Dataset Security (CSV/Excel)
+For the raw data source (`Tumikia Data.xlsx`), we apply the following fs_path classifications in Atlas:
+- **Qualified Name**: `file:///C:/Users/jerem/OneDrive/Desktop/Jali/Tumikia Data.xlsx`
+- **Security Logic**: Attributes of the dataset are inherited by any downstream ingestion (PostgreSQL) through lineage tracking.
+- **Auto-Tagging**: `Sync_CSV_Security` script ensures columns mapping to the above tags are restricted at the source level.
+
 ## 2. Access Control (Ranger Integration)
 Apache Atlas works with **Apache Ranger** to enforce policies based on these tags.
 - **Policy 1**: If User has role `VIEWER` and Tag is `SENSITIVE_HEALTH` -> **DENY**.

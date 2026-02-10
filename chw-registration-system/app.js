@@ -13,7 +13,10 @@ const dataStore = {
     facilities: [],
     caregivers: [],
     chvUsers: [],
-    ovcRegistrations: []
+    ovcRegistrations: [],
+    menstrualLogs: [],
+    adherenceLogs: [],
+    vaccinationSchedule: []
 };
 
 // Current state
@@ -34,6 +37,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderRegistrationForm();
     renderRecordsTable();
     renderCaregiversTable();
+    initializeHealthTracking();
 });
 
 async function loadSampleData() {
@@ -160,6 +164,29 @@ async function loadSampleData() {
         { ovc_id: 5, ovc_names: 'James Omondi', gender: 'Male', date_of_birth: '2010-07-20', ovc_hiv_status: 'Negative', ward_id: 8, caregiver_id: 2, school_level: 'Junior Secondary', registration_date: '2026-02-06' }
     ];
     registrationCounter = 6;
+
+    // Populate Vaccination Schedule (KEPI)
+    dataStore.vaccinationSchedule = [
+        { vaccine: 'BCG', age: 'Birth', desc: 'Tuberculosis' },
+        { vaccine: 'OPV 0', age: 'Birth', desc: 'Polio' },
+        { vaccine: 'Pentavalent 1', age: '6 Weeks', desc: 'DPT, HepB, Hib' },
+        { vaccine: 'PCV 10 (1)', age: '6 Weeks', desc: 'Pneumonia' },
+        { vaccine: 'Rotavirus 1', age: '6 Weeks', desc: 'Diarrhea' },
+        { vaccine: 'Measles-Rubella 1', age: '9 Months', desc: 'Measles' },
+        { vaccine: 'Yellow Fever', age: '9 Months', desc: 'Yellow Fever' }
+    ];
+
+    // Sample Menstrual Data (derived from FedCycleData)
+    dataStore.menstrualLogs = [
+        { id: 1, beneficiary_id: 2, cycle: 1, start: '2026-01-05', length: 28, menses: 5, intensity: 3 },
+        { id: 2, beneficiary_id: 2, cycle: 2, start: '2026-02-02', length: 27, menses: 4, intensity: 4 }
+    ];
+
+    // Sample Adherence Data (derived from ChinaCRT)
+    dataStore.adherenceLogs = [
+        { id: 1, ovc_id: 3, med: 'HIV-ART', date: '2026-02-01', missed3d: 0, missed7d: 1, rate: 95 },
+        { id: 2, ovc_id: 3, med: 'HIV-ART', date: '2026-02-08', missed3d: 0, missed7d: 0, rate: 100 }
+    ];
 }
 
 // =====================================================
@@ -1031,3 +1058,138 @@ document.getElementById('modalOverlay')?.addEventListener('click', (e) => {
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeModal();
 });
+
+function initializeHealthTracking() {
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tabName = btn.dataset.tab;
+            tabBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(`${tabName}Tab`).classList.add('active');
+
+            renderHealthTab(tabName);
+        });
+    });
+}
+
+function renderHealthTab(tabName) {
+    if (tabName === 'immunization') renderImmunizationTab();
+    if (tabName === 'menstrual') renderMenstrualTab();
+    if (tabName === 'adherence') renderAdherenceTab();
+}
+
+function renderImmunizationTab() {
+    const container = document.getElementById('immunizationTab');
+    if (!container) return;
+    container.innerHTML = `
+        <div class="card">
+            <div class="card-header"><h2>KEPI Vaccination Schedule (Kenya)</h2></div>
+            <div class="card-body">
+                <div class="kepi-list">
+                    ${dataStore.vaccinationSchedule.map(v => `
+                        <div class="kepi-item">
+                            <div>
+                                <strong>${v.vaccine}</strong>
+                                <p style="font-size:0.8rem;color:var(--text-muted)">${v.desc}</p>
+                            </div>
+                            <span class="badge badge-unknown">${v.age}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="card-header"><h2>Upcoming Vaccinations</h2></div>
+            <div class="card-body">
+                <p style="color:var(--text-muted)">System alerts for children due for vaccination.</p>
+            </div>
+        </div>
+    `;
+}
+
+function renderMenstrualTab() {
+    const container = document.getElementById('menstrualTab');
+    if (!container) return;
+    const girls = dataStore.ovcRegistrations.filter(o => o.gender === 'Female' && calculateAge(o.date_of_birth) >= 9);
+
+    container.innerHTML = `
+        <div class="health-grid">
+            <div class="card">
+                <div class="card-header"><h2>Menstrual Health Logging</h2></div>
+                <div class="card-body">
+                    ${girls.length === 0 ? '<p>No eligible beneficiaries found (Girls 9+).</p>' :
+            girls.map(g => {
+                const logs = dataStore.menstrualLogs.filter(l => l.beneficiary_id === g.ovc_id);
+                return `
+                                <div class="medication-log-item">
+                                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                                        <strong>${g.ovc_names}</strong>
+                                        <button class="btn btn-sm btn-outline" onclick="showToast('Log added for ${g.ovc_names}', 'success')">+ Log</button>
+                                    </div>
+                                    <p style="font-size:0.85rem;margin-top:0.5rem;">Last Cycle: ${logs.length > 0 ? formatDate(logs[logs.length - 1].start) : 'None Recorded'}</p>
+                                    <p style="font-size:0.75rem;color:var(--text-muted)">Cycle Length: ${logs.length > 0 ? logs[logs.length - 1].length + ' days' : 'N/A'}</p>
+                                </div>
+                            `;
+            }).join('')
+        }
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header"><h2>Health Insights</h2></div>
+                <div class="card-body">
+                    <p style="font-size:0.9rem">Monitoring unusual bleeding patterns derived from cycle data.</p>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderAdherenceTab() {
+    const container = document.getElementById('adherenceTab');
+    if (!container) return;
+    const onArt = dataStore.ovcRegistrations.filter(o => o.ovc_hiv_status === 'Positive');
+
+    container.innerHTML = `
+        <div class="health-grid">
+            <div class="card">
+                <div class="card-header"><h2>TB/HIV Medication Adherence</h2></div>
+                <div class="card-body">
+                    ${onArt.length === 0 ? '<p>No OVCs currently on ART medication.</p>' :
+            onArt.map(o => {
+                const logs = dataStore.adherenceLogs.filter(l => l.ovc_id === o.ovc_id);
+                const lastLog = logs[logs.length - 1];
+                const rate = lastLog ? lastLog.rate : 0;
+                return `
+                                <div class="medication-log-item">
+                                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">
+                                        <strong>${o.ovc_names}</strong>
+                                        <span class="status-indicator ${rate >= 95 ? 'status-completed' : 'status-urgent'}">
+                                            ${rate || 0}% Adherence
+                                        </span>
+                                    </div>
+                                    <p style="font-size:0.85rem">Condition: HIV/ART</p>
+                                    <p style="font-size:0.75rem;color:var(--text-muted)">Missed doses (last 7d): ${lastLog?.missed7d || 0}</p>
+                                    <div style="margin-top:1rem;display:flex;gap:0.5rem;">
+                                        <button class="btn btn-sm btn-primary" onclick="showToast('Adherence check saved', 'success')">Check</button>
+                                        <button class="btn btn-sm btn-ghost" onclick="showToast('Refill reminder sent', 'info')">Remind Refill</button>
+                                    </div>
+                                </div>
+                            `;
+            }).join('')}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Intercept showSection to load health data
+const nativeShowSection = showSection;
+showSection = function (sectionName) {
+    if (typeof nativeShowSection === 'function') nativeShowSection(sectionName);
+    if (sectionName === 'health') {
+        renderHealthTab('immunization');
+    }
+};
