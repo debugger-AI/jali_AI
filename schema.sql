@@ -1,5 +1,5 @@
--- Enable UUID extension if needed, though we use VARCHAR for provided IDs
--- CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- Database Schema for Jali AI (OLTP)
+-- Focus: Households as the central unit for CHW monitoring
 
 -- 1. Organizations (CBOs)
 CREATE TABLE IF NOT EXISTS cbos (
@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS cbos (
     cbo_name VARCHAR(255)
 );
 
--- 2. Community Health Volunteers (CHVs)
+-- 2. Community Health Volunteers (CHV / CHW)
 CREATE TABLE IF NOT EXISTS chvs (
     chv_id VARCHAR(50) PRIMARY KEY,
     chv_name VARCHAR(255)
@@ -27,58 +27,65 @@ CREATE TABLE IF NOT EXISTS schools (
     school_level VARCHAR(50)
 );
 
--- 5. Caregivers
-CREATE TABLE IF NOT EXISTS caregivers (
-    caregiver_id VARCHAR(50) PRIMARY KEY,
-    caregiver_name VARCHAR(255),
-    national_id VARCHAR(50),
-    phone VARCHAR(50),
-    gender VARCHAR(20),
-    dob DATE,
-    hiv_status VARCHAR(50),
-    household_info TEXT,
-    caregiver_type VARCHAR(100),
-    father_alive VARCHAR(20),
-    mother_alive VARCHAR(20)
-);
-
--- 6. OVCs (Orphans and Vulnerable Children)
-CREATE TABLE IF NOT EXISTS ovcs (
-    ovc_id VARCHAR(50) PRIMARY KEY,
-    ovc_name VARCHAR(255),
-    gender VARCHAR(20),
-    dob DATE,
-    birth_cert_no VARCHAR(100),
-    ncpwd_no VARCHAR(100),
-    disability_status VARCHAR(255),
-    hiv_status VARCHAR(50)
-);
-
--- 7. Events / Cases (The main transactional table)
-CREATE TABLE IF NOT EXISTS ovc_cases (
-    case_id SERIAL PRIMARY KEY,
-    ovc_id VARCHAR(50), -- Foreign key constraints added later or handled by app to avoid import errors on missing keys
-    caregiver_id VARCHAR(50),
+-- 5. Households (The family unit)
+CREATE TABLE IF NOT EXISTS households (
+    household_id VARCHAR(50) PRIMARY KEY,
     chv_id VARCHAR(50),
     cbo_id VARCHAR(50),
-    facility_id VARCHAR(50),
-    school_id VARCHAR(50),
-    
-    -- Location Data (Snapshotted)
     ward_id VARCHAR(50),
     ward_name VARCHAR(100),
     constituency_id VARCHAR(50),
     constituency_name VARCHAR(100),
     county_id VARCHAR(50),
     county_name VARCHAR(100),
+    CONSTRAINT fk_household_chv FOREIGN KEY (chv_id) REFERENCES chvs(chv_id),
+    CONSTRAINT fk_household_cbo FOREIGN KEY (cbo_id) REFERENCES cbos(cbo_id)
+);
+
+-- 6. Caregivers (Household Heads)
+CREATE TABLE IF NOT EXISTS caregivers (
+    caregiver_id VARCHAR(50) PRIMARY KEY,
+    household_id VARCHAR(50),
+    caregiver_name VARCHAR(255),
+    national_id VARCHAR(50),
+    phone VARCHAR(50),
+    gender VARCHAR(20),
+    dob DATE,
+    hiv_status VARCHAR(50),
+    caregiver_type VARCHAR(100),
+    father_alive VARCHAR(20),
+    mother_alive VARCHAR(20),
+    CONSTRAINT fk_caregiver_household FOREIGN KEY (household_id) REFERENCES households(household_id)
+);
+
+-- 7. OVCs (Orphans and Vulnerable Children)
+CREATE TABLE IF NOT EXISTS ovcs (
+    ovc_id VARCHAR(50) PRIMARY KEY,
+    household_id VARCHAR(50),
+    ovc_name VARCHAR(255),
+    gender VARCHAR(20),
+    dob DATE,
+    birth_cert_no VARCHAR(100),
+    ncpwd_no VARCHAR(100),
+    disability_status VARCHAR(255),
+    hiv_status VARCHAR(50),
+    CONSTRAINT fk_ovc_household FOREIGN KEY (household_id) REFERENCES households(household_id)
+);
+
+-- 8. OVC Events / Cases (Progress monitoring)
+CREATE TABLE IF NOT EXISTS ovc_cases (
+    case_id SERIAL PRIMARY KEY,
+    ovc_id VARCHAR(50),
+    caregiver_id VARCHAR(50),
+    chv_id VARCHAR(50),
+    facility_id VARCHAR(50),
+    school_id VARCHAR(50),
     
-    -- Dates
     date_of_event DATE,
     date_of_linkage DATE,
     registration_date DATE,
     exit_date DATE,
     
-    -- Medical / Program Status
     art_status VARCHAR(100),
     ccc_number VARCHAR(100),
     duration_on_art VARCHAR(50),
@@ -87,20 +94,19 @@ CREATE TABLE IF NOT EXISTS ovc_cases (
     immunization_status VARCHAR(100),
     eligibility VARCHAR(100),
     
-    -- Exit Info
     exit_status VARCHAR(100),
     exit_reason TEXT,
     
-    -- Metadata
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
-    CONSTRAINT fk_ovc FOREIGN KEY (ovc_id) REFERENCES ovcs(ovc_id),
-    CONSTRAINT fk_caregiver FOREIGN KEY (caregiver_id) REFERENCES caregivers(caregiver_id),
-    CONSTRAINT fk_chv FOREIGN KEY (chv_id) REFERENCES chvs(chv_id),
-    CONSTRAINT fk_cbo FOREIGN KEY (cbo_id) REFERENCES cbos(cbo_id)
-    -- Relaxing other FKs for now to ensure data load success if referenced entities are missing IDs in source
+    CONSTRAINT fk_case_ovc FOREIGN KEY (ovc_id) REFERENCES ovcs(ovc_id),
+    CONSTRAINT fk_case_caregiver FOREIGN KEY (caregiver_id) REFERENCES caregivers(caregiver_id),
+    CONSTRAINT fk_case_chv FOREIGN KEY (chv_id) REFERENCES chvs(chv_id)
 );
 
 -- Indexes for performance
-CREATE INDEX idx_ovc_cases_ovc_id ON ovc_cases(ovc_id);
+CREATE INDEX idx_households_chv ON households(chv_id);
+CREATE INDEX idx_caregivers_household ON caregivers(household_id);
+CREATE INDEX idx_ovcs_household ON ovcs(household_id);
+CREATE INDEX idx_ovc_cases_ovc ON ovc_cases(ovc_id);
 CREATE INDEX idx_ovc_cases_date ON ovc_cases(date_of_event);

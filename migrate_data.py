@@ -3,40 +3,70 @@ import psycopg2
 from psycopg2 import sql
 import os
 import math
-import numpy as np
 from datetime import datetime
 
-# Database Configuration - UPDATE THESE or use .env
+# Database Configuration
 DB_HOST = os.getenv("DB_HOST", "localhost")
-DB_NAME = os.getenv("DB_NAME", "jali_oltp")
+DB_NAME = os.getenv("DB_NAME", "Jali DB")
 DB_USER = os.getenv("DB_USER", "postgres")
-DB_PASS = os.getenv("DB_PASS", "password")
+DB_PASS = os.getenv("DB_PASS", "Twenty@20")
 DB_PORT = os.getenv("DB_PORT", "5432")
 
-FILE_PATH = 'Tumikia Data.xlsx'
+FILE_PATH = 'Tumikia Data.csv'
 
 def clean_value(val):
-    """Handle NaN and cleanup values for SQL"""
-    if pd.isna(val) or val == 'nan':
+    if pd.isna(val) or str(val).lower() == 'nan' or str(val).strip() == '':
         return None
     if isinstance(val, (int, float)):
         return val
     return str(val).strip()
 
 def clean_date(val):
-    """Handle date parsing safe"""
-    if pd.isna(val) or val == '' or str(val).lower() == 'nan':
+    if pd.isna(val) or str(val).lower() == 'nan' or str(val).strip() == '':
         return None
     try:
-        if isinstance(val, str):
-            # Attempt generic parse if string
-            return pd.to_datetime(val).date()
-        return val.date() if hasattr(val, 'date') else val
+        return pd.to_datetime(val).date()
     except:
         return None
 
+def ensure_database():
+    """Connects to default 'postgres' db to ensure 'jali_oltp' exists"""
+    try:
+        conn = psycopg2.connect(
+            host=DB_HOST,
+            user=DB_USER,
+            password=DB_PASS,
+            port=DB_PORT,
+            database='postgres'
+        )
+        conn.autocommit = True
+        cur = conn.cursor()
+        
+        # Check if DB exists
+        cur.execute("SELECT 1 FROM pg_catalog.pg_database WHERE datname = %s", (DB_NAME,))
+        exists = cur.fetchone()
+        
+        if not exists:
+            print(f"Database '{DB_NAME}' does not exist. Creating it...")
+            cur.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(DB_NAME)))
+            print(f"Database '{DB_NAME}' created.")
+        else:
+            print(f"Database '{DB_NAME}' already exists.")
+            
+        cur.close()
+        conn.close()
+        return True
+    except Exception as e:
+        print(f"Warning: Could not check/create database: {e}")
+        return False
+
 def migrate():
-    print("Connecting to Database...")
+    print("--- Jali Data Migration (PostgreSQL) ---")
+    
+    # Try to ensure DB exists first
+    ensure_database()
+    
+    print(f"Connecting to database '{DB_NAME}'...")
     try:
         conn = psycopg2.connect(
             host=DB_HOST,
@@ -49,11 +79,12 @@ def migrate():
         print("Connected.")
     except Exception as e:
         print(f"Connection Failed: {e}")
-        print("Please check your database credentials in the script or .env")
+        print("\nTIP: Make sure your PostgreSQL server is running and the user 'postgres' has password 'password'.")
+        print("You can modify the script or set environment variables to change credentials.")
         return
 
-    # Run Schema
-    print("Applying Schema...")
+    # 1. Apply Schema
+    print("Applying schema.sql...")
     try:
         with open('schema.sql', 'r') as f:
             schema = f.read()
@@ -64,148 +95,134 @@ def migrate():
         conn.rollback()
         return
 
-    print("Reading Excel Data... (This may take a moment)")
-    # Read in chunks if file is huge, but 13MB is fine for memory
-    df = pd.read_excel(FILE_PATH, sheet_name='Sheet1')
-    
-    total_rows = len(df)
-    print(f"Processing {total_rows} rows...")
-    
-    # helper for upserting dimensions
-    def insert_dim(table, id_col, name_col, id_val, name_val, extra_cols={}):
-        if not id_val:
-            return
+    # 2. Read CSV
+    if not os.path.exists(FILE_PATH):
+        print(f"Error: {FILE_PATH} not found in current directory.")
+        return
         
-        cols = [id_col, name_col] + list(extra_cols.keys())
-        vals = [id_val, name_val] + list(extra_cols.values())
-        
-        placeholders = ', '.join(['%s'] * len(cols))
-        columns = ', '.join(cols)
-        
-        stmt = sql.SQL("INSERT INTO {} ({}) VALUES ({}) ON CONFLICT ({}) DO NOTHING").format(
-            sql.Identifier(table),
-            sql.SQL(columns),
-            sql.SQL(placeholders),
-            sql.Identifier(id_col)
-        )
-        cur.execute(stmt, vals)
+    print(f"Reading {FILE_PATH}...")
+    df = pd.read_csv(FILE_PATH, low_memory=False)
+    print(f"Loaded {len(df)} rows.")
 
-    # Process Rows
-    count = 0
-    for index, row in df.iterrows():
-        # Clean IDs
-        cbo_id = clean_value(row.get('cbo_id'))
-        chv_id = clean_value(row.get('chv_id'))
-        facility_id = clean_value(row.get('facility_id'))
-        school_id = clean_value(row.get('school_id'))
-        caregiver_id = clean_value(row.get('caregiver_id'))
-        ovc_id = clean_value(row.get('ovc_id'))
-        
-        # 1. Insert Dimensions
-        if cbo_id:
-            insert_dim('cbos', 'cbo_id', 'cbo_name', cbo_id, clean_value(row.get('cbo')))
-            
-        if chv_id:
-            insert_dim('chvs', 'chv_id', 'chv_name', chv_id, clean_value(row.get('chv_names')))
-            
-        if facility_id:
-            insert_dim('facilities', 'facility_id', 'facility_name', 
-                      facility_id, clean_value(row.get('facility')), 
-                      {'mfl_code': clean_value(row.get('facility_mfl_code'))})
-            
-        if school_id:
-            insert_dim('schools', 'school_id', 'school_name', 
-                      school_id, clean_value(row.get('school_name')),
-                      {'school_level': clean_value(row.get('schoollevel'))})
-                      
-        if caregiver_id:
-            # Full caregiver insert
-            cg_vals = {
-                'caregiver_id': caregiver_id,
-                'caregiver_name': clean_value(row.get('caregiver_names')),
-                'national_id': clean_value(row.get('caregiver_nationalid')),
-                'phone': clean_value(row.get('phone')),
-                'gender': clean_value(row.get('caregiver_gender')),
-                'dob': clean_date(row.get('caregiver_dob')),
-                'hiv_status': clean_value(row.get('caregiverhivstatus')),
-                'household_info': clean_value(row.get('household')),
-                'caregiver_type': clean_value(row.get('caregiver_type')),
-                'father_alive': clean_value(row.get('father_alive')),
-                'mother_alive': clean_value(row.get('mother_alive'))
-            }
-            # Construct insert specifically for caregiver
-            cols = list(cg_vals.keys())
-            placeholders = ', '.join(['%s'] * len(cols))
-            stmt = sql.SQL("INSERT INTO caregivers ({}) VALUES ({}) ON CONFLICT (caregiver_id) DO NOTHING").format(
-                sql.SQL(', '.join(cols)), sql.SQL(placeholders)
-            )
-            cur.execute(stmt, list(cg_vals.values()))
+    # 3. Load Dimensions
+    print("Loading organizations...")
+    cbos = df[['cbo_id', 'cbo']].dropna(subset=['cbo_id']).drop_duplicates('cbo_id')
+    for _, row in cbos.iterrows():
+        cur.execute("INSERT INTO cbos (cbo_id, cbo_name) VALUES (%s, %s) ON CONFLICT (cbo_id) DO NOTHING", 
+                    (clean_value(row['cbo_id']), clean_value(row['cbo'])))
 
-        if ovc_id:
-            # OVC Insert
-            ovc_vals = {
-                'ovc_id': ovc_id,
-                'ovc_name': clean_value(row.get('ovc_names')),
-                'gender': clean_value(row.get('gender')),
-                'dob': clean_date(row.get('dob')),
-                'birth_cert_no': clean_value(row.get('bcertnumber')),
-                'ncpwd_no': clean_value(row.get('ncpwdnumber')),
-                'disability_status': clean_value(row.get('ovcdisability')),
-                'hiv_status': clean_value(row.get('ovchivstatus'))
-            }
-            cols = list(ovc_vals.keys())
-            placeholders = ', '.join(['%s'] * len(cols))
-            stmt = sql.SQL("INSERT INTO ovcs ({}) VALUES ({}) ON CONFLICT (ovc_id) DO NOTHING").format(
-                sql.SQL(', '.join(cols)), sql.SQL(placeholders)
-            )
-            cur.execute(stmt, list(ovc_vals.values()))
-            
-        # 2. Insert Case/Event
-        case_vals = {
-            'ovc_id': ovc_id,
-            'caregiver_id': caregiver_id,
-            'chv_id': chv_id,
-            'cbo_id': cbo_id,
-            'facility_id': facility_id,
-            'school_id': school_id,
-            
-            'ward_id': clean_value(row.get('ward_id')),
-            'ward_name': clean_value(row.get('ward')),
-            'constituency_id': clean_value(row.get('consituency_id')),
-            'constituency_name': clean_value(row.get('constituency')),
-            'county_id': clean_value(row.get('countyid')),
-            'county_name': clean_value(row.get('county')),
-            
-            'date_of_event': clean_date(row.get('date_of_event')),
-            'date_of_linkage': clean_date(row.get('date_of_linkage')),
-            'registration_date': clean_date(row.get('registration_date')),
-            'exit_date': clean_date(row.get('exit_date')),
-            
-            'art_status': clean_value(row.get('artstatus')),
-            'ccc_number': clean_value(row.get('ccc_number')),
-            'duration_on_art': clean_value(row.get('duration_on_art')),
-            'viral_load': clean_value(row.get('viral_load')),
-            'suppression_status': clean_value(row.get('suppression')),
-            'immunization_status': clean_value(row.get('immunization')),
-            'eligibility': clean_value(row.get('eligibility')),
-            'exit_status': clean_value(row.get('exit_status')),
-            'exit_reason': clean_value(row.get('exit_reason'))
-        }
-        
-        cols = list(case_vals.keys())
-        placeholders = ', '.join(['%s'] * len(cols))
-        stmt = sql.SQL("INSERT INTO ovc_cases ({}) VALUES ({})").format(
-            sql.SQL(', '.join(cols)), sql.SQL(placeholders)
-        )
-        cur.execute(stmt, list(case_vals.values()))
-        
-        count += 1
-        if count % 1000 == 0:
-            print(f"Processed {count} rows...")
+    print("Loading CHVs/CHWs...")
+    chvs = df[['chv_id', 'chv_names']].dropna(subset=['chv_id']).drop_duplicates('chv_id')
+    for _, row in chvs.iterrows():
+        cur.execute("INSERT INTO chvs (chv_id, chv_name) VALUES (%s, %s) ON CONFLICT (chv_id) DO NOTHING", 
+                    (clean_value(row['chv_id']), clean_value(row['chv_names'])))
+
+    print("Loading Households & Locations...")
+    households = df[[
+        'household', 'chv_id', 'cbo_id', 'ward_id', 'ward', 
+        'consituency_id', 'constituency', 'countyid', 'county'
+    ]].dropna(subset=['household']).drop_duplicates('household')
+    
+    for _, row in households.iterrows():
+        cur.execute("""
+            INSERT INTO households (
+                household_id, chv_id, cbo_id, ward_id, ward_name, 
+                constituency_id, constituency_name, county_id, county_name
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) 
+            ON CONFLICT (household_id) DO NOTHING
+        """, (
+            clean_value(row['household']), clean_value(row['chv_id']), clean_value(row['cbo_id']),
+            clean_value(row['ward_id']), clean_value(row['ward']),
+            clean_value(row['consituency_id']), clean_value(row['constituency']),
+            clean_value(row['countyid']), clean_value(row['county'])
+        ))
+
+    print("Loading Caregivers...")
+    caregivers = df[[
+        'caregiver_id', 'household', 'caregiver_names', 'caregiver_nationalid', 
+        'phone', 'caregiver_gender', 'caregiver_dob', 'caregiverhivstatus',
+        'caregiver_type', 'father_alive', 'mother_alive'
+    ]].dropna(subset=['caregiver_id']).drop_duplicates('caregiver_id')
+    
+    for _, row in caregivers.iterrows():
+        cur.execute("""
+            INSERT INTO caregivers (
+                caregiver_id, household_id, caregiver_name, national_id, phone, 
+                gender, dob, hiv_status, caregiver_type, father_alive, mother_alive
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) 
+            ON CONFLICT (caregiver_id) DO NOTHING
+        """, (
+            clean_value(row['caregiver_id']), clean_value(row['household']),
+            clean_value(row['caregiver_names']), clean_value(row['caregiver_nationalid']),
+            clean_value(row['phone']), clean_value(row['caregiver_gender']),
+            clean_date(row['caregiver_dob']), clean_value(row['caregiverhivstatus']),
+            clean_value(row['caregiver_type']), clean_value(row['father_alive']),
+            clean_value(row['mother_alive'])
+        ))
+
+    print("Loading OVCs...")
+    ovcs = df[[
+        'ovc_id', 'household', 'ovc_names', 'gender', 'dob', 
+        'bcertnumber', 'ncpwdnumber', 'ovcdisability', 'ovchivstatus'
+    ]].dropna(subset=['ovc_id']).drop_duplicates('ovc_id')
+    
+    for _, row in ovcs.iterrows():
+        cur.execute("""
+            INSERT INTO ovcs (
+                ovc_id, household_id, ovc_name, gender, dob, 
+                birth_cert_no, ncpwd_no, disability_status, hiv_status
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s) 
+            ON CONFLICT (ovc_id) DO NOTHING
+        """, (
+            clean_value(row['ovc_id']), clean_value(row['household']),
+            clean_value(row['ovc_names']), clean_value(row['gender']),
+            clean_date(row['dob']), clean_value(row['bcertnumber']),
+            clean_value(row['ncpwdnumber']), clean_value(row['ovcdisability']),
+            clean_value(row['ovchivstatus'])
+        ))
+
+    print("Loading Facilities & Schools...")
+    facilities = df[['facility_id', 'facility', 'facility_mfl_code']].dropna(subset=['facility_id']).drop_duplicates('facility_id')
+    for _, row in facilities.iterrows():
+        cur.execute("INSERT INTO facilities (facility_id, facility_name, mfl_code) VALUES (%s, %s, %s) ON CONFLICT (facility_id) DO NOTHING",
+                   (clean_value(row['facility_id']), clean_value(row['facility']), clean_value(row['facility_mfl_code'])))
+                   
+    schools = df[['school_id', 'school_name', 'schoollevel']].dropna(subset=['school_id']).drop_duplicates('school_id')
+    for _, row in schools.iterrows():
+        cur.execute("INSERT INTO schools (school_id, school_name, school_level) VALUES (%s, %s, %s) ON CONFLICT (school_id) DO NOTHING",
+                   (clean_value(row['school_id']), clean_value(row['school_name']), clean_value(row['schoollevel'])))
+
+    # 4. Final Load
+    print("Loading Process Tracking Events...")
+    case_count = 0
+    for _, row in df.iterrows():
+        cur.execute("""
+            INSERT INTO ovc_cases (
+                ovc_id, caregiver_id, chv_id, facility_id, school_id,
+                date_of_event, date_of_linkage, registration_date, exit_date,
+                art_status, ccc_number, duration_on_art, viral_load, 
+                suppression_status, immunization_status, eligibility,
+                exit_status, exit_reason
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (
+            clean_value(row['ovc_id']), clean_value(row['caregiver_id']), clean_value(row['chv_id']),
+            clean_value(row['facility_id']), clean_value(row['school_id']),
+            clean_date(row['date_of_event']), clean_date(row['date_of_linkage']),
+            clean_date(row['registration_date']), clean_date(row['exit_date']),
+            clean_value(row['artstatus']), clean_value(row['ccc_number']),
+            clean_value(row['duration_on_art']), clean_value(row['viral_load']),
+            clean_value(row['suppression']), clean_value(row['immunization']),
+            clean_value(row['eligibility']), clean_value(row['exit_status']),
+            clean_value(row['exit_reason'])
+        ))
+        case_count += 1
+        if case_count % 2000 == 0:
+            print(f"Progress: {case_count} rows loaded...")
             conn.commit()
 
     conn.commit()
-    print("Migration Complete!")
+    print(f"--- Migration Successful! ---")
+    print(f"Final Count: {case_count} events stored.")
     cur.close()
     conn.close()
 
