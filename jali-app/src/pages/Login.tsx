@@ -1,10 +1,26 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowRight, Eye, EyeOff, Sparkles } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import { ArrowRight, Eye, EyeOff, Sparkles, MapPin } from "lucide-react";
 import jaliLogo from "@/assets/jali-logo.svg";
+import countyData from "@/data/county_data.json";
+
+interface County {
+  name: string;
+  constituencies: {
+    name: string;
+    wards: any[];
+  }[];
+}
 
 const Login = () => {
   const navigate = useNavigate();
@@ -12,6 +28,27 @@ const Login = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  // Location states
+  const [selectedCounty, setSelectedCounty] = useState<string>("");
+  const [selectedConstituency, setSelectedConstituency] = useState<string>("");
+
+  // Sort counties alphabetically
+  const counties = useMemo(() => {
+    return [...(countyData as County[])].sort((a, b) => a.name.localeCompare(b.name));
+  }, []);
+
+  // Find current county data
+  const currentCounty = useMemo(() =>
+    counties.find(c => c.name === selectedCounty),
+    [selectedCounty, counties]
+  );
+
+  // Sort constituencies alphabetically
+  const constituencies = useMemo(() => {
+    if (!currentCounty) return [];
+    return [...currentCounty.constituencies].sort((a, b) => a.name.localeCompare(b.name));
+  }, [currentCounty]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,6 +148,49 @@ const Login = () => {
                 />
               </div>
             )}
+
+            {/* County Selection */}
+            <div className="space-y-2">
+              <Label className="text-foreground/80 text-sm flex items-center gap-2">
+                <MapPin size={14} className="text-primary" />
+                Select County
+              </Label>
+              <Select onValueChange={setSelectedCounty} value={selectedCounty}>
+                <SelectTrigger className="h-12 rounded-xl border-border/60 bg-muted/30 focus:bg-background transition-colors">
+                  <SelectValue placeholder="Select your county" />
+                </SelectTrigger>
+                <SelectContent>
+                  {counties.map((county) => (
+                    <SelectItem key={county.name} value={county.name}>
+                      {county.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Constituency Selection */}
+            <div className="space-y-2">
+              <Label className="text-foreground/80 text-sm">
+                Select Constituency
+              </Label>
+              <Select
+                onValueChange={setSelectedConstituency}
+                value={selectedConstituency}
+                disabled={!selectedCounty}
+              >
+                <SelectTrigger className="h-12 rounded-xl border-border/60 bg-muted/30 focus:bg-background transition-colors">
+                  <SelectValue placeholder={selectedCounty ? "Select constituency" : "Select county first"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {constituencies.map((constituency) => (
+                    <SelectItem key={constituency.name} value={constituency.name}>
+                      {constituency.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
             <div className="space-y-2">
               <Label htmlFor="email" className="text-foreground/80 text-sm">
