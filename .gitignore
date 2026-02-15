@@ -3,3 +3,9 @@ __pycache__/
 *.pkl
 .env
 mlruns/
+
+Tumikia Data.csv
+Tumikia Data.xlsx
+analysis_output.txt
+analysis_v2.txt
+
