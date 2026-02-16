@@ -3,9 +3,17 @@ __pycache__/
 *.pkl
 .env
 mlruns/
+RAG data/
+
 
 Tumikia Data.csv
 Tumikia Data.xlsx
 analysis_output.txt
 analysis_v2.txt
+male_abuse_2k_data.csv 
+QualityOfCare.xlsx 
+QualityOfCare.csv 
+HIV_adherence_dataset.csv 
+FedCycleData.csv 
+CRT_dataset.csv
 
