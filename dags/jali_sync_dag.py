@@ -10,10 +10,10 @@ sys.path.append(os.path.join(PROJECT_PATH, "pipelines"))
 
 # Import the sync function from the pipelines folder
 try:
-    from postgres_to_snowflake_sync import sync_ovc_cases
+    from postgres_to_snowflake_sync import run_full_sync
 except ImportError:
     
-    def sync_ovc_cases():
+    def run_full_sync():
         print("Error: Could not find postgres_to_snowflake_sync.py in pipelines folder.")
 
 # workflow dag defination
@@ -29,21 +29,21 @@ default_args = {
 with DAG(
     'jali_snowflake_ml_sync',
     default_args=default_args,
-    description='Professional sync: Postgres -> Snowflake for Jali ML',
-    schedule_interval='@hourly',
+    description='Professional sync: Entire Postgres DB -> Snowflake RAW',
+    schedule='@hourly',
     start_date=datetime(2026, 1, 1),
     catchup=False,
-    tags=['jali', 'production', 'consistency'],
+    tags=['jali', 'production', 'multi-table'],
 ) as dag:
 
   
     sync_task = PythonOperator(
-        task_id='sync_live_postgres_data',
-        python_callable=sync_ovc_cases,
+        task_id='sync_all_postgres_tables',
+        python_callable=run_full_sync,
         doc_md="""
-        ### Consistency Guard
-        This task performs incremental loading based on the last record in Snowflake.
-        If it fails, it will auto-retry 3 times before alerting the admin.
+        ### Multi-Table Sync
+        This task iterates through all configured Postgres tables and syncs them 
+        into the Snowflake RAW schema incrementally.
         """
     )
 
