@@ -1,11 +1,11 @@
 from airflow import DAG
-from airflow.providers.standard.operators.python import PythonOperator
+from airflow.operators.python import PythonOperator
 from datetime import datetime, timedelta
 import sys
 import os
 
 
-PROJECT_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PROJECT_PATH = "/mnt/c/Users/jerem/OneDrive/Desktop/Jali"
 sys.path.append(os.path.join(PROJECT_PATH, "pipelines"))
 
 # Import the sync function from the pipelines folder
