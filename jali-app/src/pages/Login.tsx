@@ -84,22 +84,7 @@ const Login = () => {
               Your AI-powered companion for case management, community insights, and impactful healthcare delivery.
             </p>
 
-            {/* Floating stats */}
-            <div className="flex gap-6 mt-8">
-              {[
-                { value: "12K+", label: "Cases managed" },
-                { value: "98%", label: "Accuracy rate" },
-                { value: "45", label: "Communities" },
-              ].map((stat) => (
-                <div
-                  key={stat.label}
-                  className="bg-secondary-foreground/10 backdrop-blur-sm rounded-2xl p-4 border border-secondary-foreground/10"
-                >
-                  <div className="text-2xl font-bold">{stat.value}</div>
-                  <div className="text-sm text-secondary-foreground/70">{stat.label}</div>
-                </div>
-              ))}
-            </div>
+
           </div>
 
           <p className="text-sm text-secondary-foreground/50">

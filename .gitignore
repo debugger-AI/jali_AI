@@ -4,8 +4,14 @@ __pycache__/
 .env
 mlruns/
 RAG data/
+logs/
+airflow.cfg
+airflow.db
+airflow.db-shm
+airflow.db-wal
+models/artifacts/
 
-
+airflowc_coms.txt
 Tumikia Data.csv
 Tumikia Data.xlsx
 analysis_output.txt
@@ -16,4 +22,5 @@ QualityOfCare.csv
 HIV_adherence_dataset.csv 
 FedCycleData.csv 
 CRT_dataset.csv
+
 

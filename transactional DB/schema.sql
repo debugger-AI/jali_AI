@@ -1,5 +1,5 @@
--- Database Schema for Jali AI (OLTP)
--- Focus: Households as the central unit for CHW monitoring
+//Database Schema for Jali AI (OLTP)
+//Focus: Households as the central unit for CHW monitoring
 
 -- 1. Organizations (CBOs)
 CREATE TABLE IF NOT EXISTS cbos (

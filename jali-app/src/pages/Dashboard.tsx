@@ -1,9 +1,12 @@
-import { Users, FolderOpen, HeartPulse, TrendingUp, Sparkles } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Users, FolderOpen, HeartPulse, TrendingUp, Sparkles, Activity, Signal, SignalLow } from "lucide-react";
 import StatCard from "@/components/dashboard/StatCard";
 import ActivityTimeline from "@/components/dashboard/ActivityTimeline";
 import CaseCard from "@/components/dashboard/CaseCard";
 import QuickActions from "@/components/dashboard/QuickActions";
 import ImpactRing from "@/components/dashboard/ImpactRing";
+import { useRealtime } from "@/hooks/useRealtime";
+import { Badge } from "@/components/ui/badge";
 
 const cases = [
   {
@@ -36,6 +39,29 @@ const cases = [
 ];
 
 const Dashboard = () => {
+  const { events, isConnected } = useRealtime();
+  const [stats, setStats] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/api/stats');
+        const data = await response.json();
+        setStats(data);
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchStats();
+    // Refresh stats every 30 seconds if live
+    const interval = setInterval(fetchStats, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
   const currentHour = new Date().getHours();
   const greeting =
     currentHour < 12 ? "Good morning" : currentHour < 17 ? "Good afternoon" : "Good evening";
@@ -45,9 +71,24 @@ const Dashboard = () => {
       {/* Greeting header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-light text-foreground">
-            {greeting}, <span className="font-semibold">Amara</span>
-          </h1>
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-2xl md:text-3xl font-light text-foreground">
+              {greeting}, <span className="font-semibold">Amara</span>
+            </h1>
+            <Badge variant={isConnected ? "success" : "secondary"} className="h-6 gap-1.5 px-3">
+              {isConnected ? (
+                <>
+                  <Signal className="h-3.5 w-3.5 text-emerald-500" />
+                  <span className="text-emerald-500 font-medium">Live</span>
+                </>
+              ) : (
+                <>
+                  <SignalLow className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="text-muted-foreground font-medium">Offline</span>
+                </>
+              )}
+            </Badge>
+          </div>
           <p className="text-muted-foreground mt-1">
             Here's what's happening in your community today.
           </p>
@@ -59,37 +100,54 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           title="Active Cases"
-          value="24"
-          change="+3"
+          value={isLoading ? "..." : stats?.activeCases?.value || "24"}
+          change={stats?.activeCases?.change || "+3"}
           changeType="positive"
           icon={FolderOpen}
           accent="primary"
         />
         <StatCard
           title="Families Reached"
-          value="156"
-          change="+12"
+          value={isLoading ? "..." : stats?.familiesReached?.value || "156"}
+          change={stats?.familiesReached?.change || "+12"}
           changeType="positive"
           icon={Users}
           accent="secondary"
         />
         <StatCard
           title="Health Visits"
-          value="48"
-          change="+8"
+          value={isLoading ? "..." : stats?.healthVisits?.value || "48"}
+          change={stats?.healthVisits?.change || "+8"}
           changeType="positive"
           icon={HeartPulse}
           accent="secondary"
         />
-        <StatCard
-          title="Impact Score"
-          value="92%"
-          change="+5%"
-          changeType="positive"
-          icon={TrendingUp}
-          accent="primary"
-        />
       </div>
+
+      {/* Real-time Events Feed (only show if there are events) */}
+      {events.length > 0 && (
+        <div className="bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 rounded-2xl p-6 animate-in slide-in-from-bottom-4 duration-500">
+          <div className="flex items-center gap-2 mb-4">
+            <Activity className="h-5 w-5 text-primary" />
+            <h3 className="text-lg font-semibold text-foreground">Real-time Stream</h3>
+          </div>
+          <div className="space-y-3">
+            {events.slice(0, 3).map((event, idx) => (
+              <div key={idx} className="flex items-center justify-between text-sm bg-background/50 p-3 rounded-lg border border-border/40">
+                <div className="flex items-center gap-3">
+                  <span className="font-mono text-xs text-primary px-2 py-0.5 bg-primary/10 rounded">
+                    {event.topic.split('.').pop()?.toUpperCase()}
+                  </span>
+                  <span className="text-muted-foreground">New record added</span>
+                </div>
+                <span className="text-xs text-muted-foreground/60">
+                  {new Date().toLocaleTimeString()}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Main content grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -98,13 +156,19 @@ const Dashboard = () => {
           {/* Priority cases */}
           <div>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-foreground">Priority Cases</h3>
+              <h3 className="text-lg font-semibold text-foreground">Priority Cases (Live from Snowflake)</h3>
               <button className="text-sm text-primary hover:underline">View all cases</button>
             </div>
             <div className="space-y-3">
-              {cases.map((c) => (
-                <CaseCard key={c.name} {...c} />
-              ))}
+              {isLoading ? (
+                <div className="text-sm text-muted-foreground animate-pulse">Loading live cases...</div>
+              ) : stats?.cases?.length > 0 ? (
+                stats.cases.map((c: any) => (
+                  <CaseCard key={c.name} {...c} />
+                ))
+              ) : (
+                <div className="text-sm text-muted-foreground">No priority cases currently found.</div>
+              )}
             </div>
           </div>
 
@@ -131,5 +195,6 @@ const Dashboard = () => {
     </div>
   );
 };
+
 
 export default Dashboard;

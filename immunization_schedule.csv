@@ -1,0 +1,33 @@
+Age,Vaccine_Name,Dose,Prevents
+Birth,BCG,0.05ml injection,Tuberculosis (TB)
+Birth,Polio,2 drops,Poliomyelitis (polio)
+6 Weeks,Polio,2 drops,Poliomyelitis (polio)
+6 Weeks,Pentavalent Vaccine,0.5mls,"Diphtheria, pertussis, tetanus, Hepatitis B, and Haemophilus Influenza"
+6 Weeks,Pneumococcal Vaccine,0.5ml,Pneumonia and other pneumococcal diseases
+6 Weeks,Rota Virus Vaccine,1.5ml,Rotavirus infection
+10 Weeks,Polio Vaccine,2 drops,Poliomyelitis (polio)
+10 Weeks,Pentavalent Vaccine,0.5mls,"Diphtheria, pertussis, tetanus, Hepatitis B, and Haemophilus Influenza"
+10 Weeks,Pneumococcal Vaccine,0.5ml,Pneumonia and other pneumococcal diseases
+10 Weeks,Rota Virus Vaccine,1.5ml,Rotavirus infection
+14 Weeks,Polio Vaccine,2 drops,Poliomyelitis (polio)
+14 Weeks,Pentavalent Vaccine,0.5mls,"Diphtheria, pertussis, tetanus, Hepatitis B, and Haemophilus Influenza"
+14 Weeks,Pneumococcal Vaccine,0.5ml,Pneumonia and other pneumococcal diseases
+14 Weeks,IPV,0.5ml,Poliomyelitis (polio)
+6 Months,Vitamin A,"100,000 IU",Vitamin A deficiency / Protect from infections
+6 Months,Measles-Rubella (MR) Vaccine,0.5ml,Measles and Rubella
+7 Months,Flu Vaccine (Optional),N/A,Flu
+9 Months,MR Vaccine,0.5ml,Measles and Rubella
+9 Months,Yellow Fever Vaccine,0.5ml,Yellow Fever
+12 Months,Vitamin A,"200,000 IU",Vitamin A deficiency / Protect from infections
+12 Months,Chicken Pox Vaccine,0.5ml,Chickenpox
+12 Months,Meningococcal Vaccine,0.5ml,Meningococcal disease
+12 Months,Hepatitis A Vaccine,0.5ml,Hepatitis A
+18 Months,Vitamin A,"200,000 IU",Vitamin A deficiency
+18 Months,MR Vaccine,0.5ml,Measles and Rubella
+18 Months,Deworming with Albendazole,200mg,Intestinal worms
+18 Months,Hexaxim/Infanrix Booster,N/A,"Diphtheria, pertussis, tetanus, Hepatitis B, and Haemophilus Influenza"
+18 Months,MMR,N/A,"Measles, mumps, and rubella"
+2 Years,Typhoid Vaccine,N/A,Typhoid fever
+2 Years,Flu Vaccine,N/A,Flu
+2 Years,Deworming,N/A,Intestinal worms
+2 Years,Vitamin A,"200,000 IU",Vitamin A deficiency

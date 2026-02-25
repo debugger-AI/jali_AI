@@ -28,7 +28,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import jaliLogo from "@/assets/jali-logo.svg";
 
 const mainNav = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
+  { title: "Home", url: "/dashboard", icon: LayoutDashboard },
   { title: "Cases", url: "/dashboard/cases", icon: FolderOpen },
   { title: "Community", url: "/dashboard/community", icon: Users },
   { title: "Field Map", url: "/dashboard/map", icon: MapPin },
@@ -77,11 +77,10 @@ export function DashboardSidebar() {
                   <SidebarMenuButton
                     isActive={isActive(item.url)}
                     onClick={() => navigate(item.url)}
-                    className={`mx-2 rounded-xl transition-all duration-200 ${
-                      isActive(item.url)
+                    className={`mx-2 rounded-xl transition-all duration-200 ${isActive(item.url)
                         ? "bg-primary/10 text-primary font-medium shadow-sm"
                         : "hover:bg-muted/50"
-                    }`}
+                      }`}
                   >
                     <item.icon className="h-4 w-4" />
                     <span>{item.title}</span>
@@ -110,11 +109,10 @@ export function DashboardSidebar() {
                   <SidebarMenuButton
                     isActive={isActive(item.url)}
                     onClick={() => navigate(item.url)}
-                    className={`mx-2 rounded-xl transition-all duration-200 ${
-                      isActive(item.url)
+                    className={`mx-2 rounded-xl transition-all duration-200 ${isActive(item.url)
                         ? "bg-primary/10 text-primary font-medium shadow-sm"
                         : "hover:bg-muted/50"
-                    }`}
+                      }`}
                   >
                     <item.icon className="h-4 w-4" />
                     <span>{item.title}</span>

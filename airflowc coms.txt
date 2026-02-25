@@ -1,0 +1,5 @@
+source ~/airflow_venv/bin/activate
+export AIRFLOW_HOME=$(pwd)
+export AIRFLOW__CORE__EXECUTOR=SequentialExecutor
+export AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=sqlite:////mnt/c/Users/jerem/OneDrive/Desktop/Jali/airflow.db
+airflow webserver -p 8085
