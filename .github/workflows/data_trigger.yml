@@ -1,0 +1,48 @@
+name: Jali MLOps — Scheduled Data Trigger
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'   # Every 6 hours
+  workflow_dispatch:          # Allow manual trigger from GitHub UI
+
+env:
+  SNOWFLAKE_ACCOUNT:   ${{ secrets.SNOWFLAKE_ACCOUNT }}
+  SNOWFLAKE_USER:      ${{ secrets.SNOWFLAKE_USER }}
+  SNOWFLAKE_PASSWORD:  ${{ secrets.SNOWFLAKE_PASSWORD }}
+  SNOWFLAKE_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+  SNOWFLAKE_DATABASE:  ${{ secrets.SNOWFLAKE_DATABASE }}
+  SNOWFLAKE_ROLE:      ${{ secrets.SNOWFLAKE_ROLE }}
+  TRIGGER_TYPE:        scheduled
+
+jobs:
+  check-and-retrain:
+    name: Check Streams & Retrain If Needed
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install MLOps dependencies
+        run: pip install -r mlops/requirements_mlops.txt
+
+      - name: Check Snowflake streams for new data
+        id: trigger_check
+        run: |
+          python mlops/retrain_trigger.py
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: Report outcome
+        run: |
+          if [ "${{ steps.trigger_check.outputs.exit_code }}" = "1" ]; then
+            echo "✅ Retraining was triggered for at least one pillar."
+          else
+            echo "ℹ️  No new data detected. No retraining needed."
+          fi

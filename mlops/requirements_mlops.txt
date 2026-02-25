@@ -1,0 +1,21 @@
+# Jali MLOps — Python dependencies
+# Install with: pip install -r mlops/requirements_mlops.txt
+
+# Snowflake Snowpark + ML
+snowflake-snowpark-python[pandas]>=1.18.0
+snowflake-ml-python>=1.5.0
+
+# ML frameworks (used by Snowpark ML estimators)
+xgboost>=2.0.0
+scikit-learn>=1.4.0
+
+# Data handling
+pandas>=2.0.0
+numpy>=1.26.0
+
+# Utilities
+python-dotenv>=1.0.0
+
+# CI/CD tooling
+flake8>=7.0.0
+pytest>=8.0.0

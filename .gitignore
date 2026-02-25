@@ -1,6 +1,8 @@
 venv/
+.venv/
 __pycache__/
 *.pkl
+*.joblib
 .env
 mlruns/
 RAG data/
@@ -10,17 +12,18 @@ airflow.db
 airflow.db-shm
 airflow.db-wal
 models/artifacts/
+mlops/__pycache__/
 
 airflowc_coms.txt
 Tumikia Data.csv
 Tumikia Data.xlsx
 analysis_output.txt
 analysis_v2.txt
-male_abuse_2k_data.csv 
-QualityOfCare.xlsx 
-QualityOfCare.csv 
-HIV_adherence_dataset.csv 
-FedCycleData.csv 
+male_abuse_2k_data.csv
+QualityOfCare.xlsx
+QualityOfCare.csv
+HIV_adherence_dataset.csv
+FedCycleData.csv
 CRT_dataset.csv
 
 
