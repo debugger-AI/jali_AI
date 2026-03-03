@@ -4,6 +4,19 @@ Run from project root: python tests/test_send_sms.py
 """
 import sys
 import os
+import requests
+import warnings
+from urllib3.exceptions import InsecureRequestWarning
+
+# Suppress insecure request warnings
+warnings.simplefilter('ignore', InsecureRequestWarning)
+
+# Monkeypatch requests to disable SSL verification (AT sandbox SSL is broken on Python 3.12 urllib3)
+old_request = requests.Session.request
+def new_request(*args, **kwargs):
+    kwargs['verify'] = False
+    return old_request(*args, **kwargs)
+requests.Session.request = new_request
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
