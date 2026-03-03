@@ -3,17 +3,46 @@ venv/
 __pycache__/
 *.pkl
 *.joblib
+*.db
+*.sqlite
+
+# --- Secrets & Credentials (NEVER commit these) ---
 .env
+.env.*
+!.env.example
+secrets/
+credentials.json
+service_account.json
+*.pem
+*.key
+
+# --- ML / MLflow ---
 mlruns/
+mlruns.db
 RAG data/
 logs/
+
+# --- Airflow ---
 airflow.cfg
 airflow.db
 airflow.db-shm
 airflow.db-wal
-models/artifacts/
-mlops/__pycache__/
 
+# --- Model artifacts ---
+models/artifacts/
+
+# --- Python cache ---
+mlops/__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# --- Jupyter ---
+*.ipynb
+.ipynb_checkpoints/
+
+# --- Data files (sensitive / large) ---
 airflowc_coms.txt
 Tumikia Data.csv
 Tumikia Data.xlsx
@@ -25,5 +54,25 @@ QualityOfCare.csv
 HIV_adherence_dataset.csv
 FedCycleData.csv
 CRT_dataset.csv
+*.parquet
 
+# --- One-off scripts (deleted) ---
+check_unique.py
+cols.txt
+dab.py
 
+# --- Frontend ---
+jali-app/node_modules/
+jali-app/.next/
+jali-app/dist/
+jali-app/build/
+jali-app/.env
+jali-app/.env.local
+
+# --- OS / IDE ---
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+*.swp

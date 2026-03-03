@@ -1,8 +1,40 @@
 import os
 import argparse
 import pandas as pd
+import json
+from confluent_kafka import Producer
 import snowflake.connector
 from dotenv import load_dotenv
+
+load_dotenv()
+
+KAFKA_BOOTSTRAP_SERVERS = os.getenv('KAFKA_BOOTSTRAP_SERVERS', 'localhost:9092')
+KAFKA_TOPIC = 'jali.ml.predictions'
+try:
+    producer = Producer({'bootstrap.servers': KAFKA_BOOTSTRAP_SERVERS})
+except Exception as e:
+    producer = None
+    print(f"Warning: Failed to initialize Kafka producer: {e}")
+
+def publish_prediction_event(user_id, prediction_type, details, channel="sms"):
+    if not producer:
+        return
+    event = {
+        "user_id": user_id,
+        "type": prediction_type,
+        "details": details,
+        "preferred_channel": channel
+    }
+    try:
+        producer.produce(
+            KAFKA_TOPIC, 
+            key=str(user_id), 
+            value=json.dumps(event).encode('utf-8')
+        )
+        producer.poll(0)
+    except Exception as e:
+        print(f"Error publishing to Kafka: {e}")
+
 
 # Import models
 import sys
@@ -74,7 +106,13 @@ def run_pipeline(source='local', models_to_run='all'):
                 df = fetch_data(source, ds)
                 model.train(df)
                 model.save()
-                print(f"   Done: {model.model_name} processed.")
+                
+                # Publish event to Kafka for the AI Agent (Simulated user for now)
+                publish_prediction_event("user_123", ds, {"model": model.model_name, "status": "processed"})
+                if producer:
+                    producer.flush()
+                    
+                print(f"   Done: {model.model_name} processed and event published.")
             except Exception as e:
                 print(f"   Error in HIV step ({ds}): {e}")
 
@@ -86,7 +124,12 @@ def run_pipeline(source='local', models_to_run='all'):
             df = fetch_data(source, 'tb')
             model.train(df)
             model.save()
-            print(f"   Done: TB Adherence Model processed.")
+            
+            publish_prediction_event("user_456", "tb_adherence", {"model": "TBAdherenceModel", "status": "processed"})
+            if producer:
+                producer.flush()
+                
+            print(f"   Done: TB Adherence Model processed and event published.")
         except Exception as e:
             print(f"   Error in TB step: {e}")
 
@@ -117,6 +160,11 @@ def run_pipeline(source='local', models_to_run='all'):
                 ovc_df = pd.read_sql_query(ovc_query, conn)
                 conn.close()
                 results = tracker.batch_process_ovc(ovc_df)
+                
+                publish_prediction_event("user_789", "immunization", {"status": "batch_processed", "count": len(results)})
+                if producer:
+                    producer.flush()
+                    
                 print("\nSample Immunization Schedule Results:")
                 print(results)
             else:
@@ -132,7 +180,12 @@ def run_pipeline(source='local', models_to_run='all'):
             df = fetch_data(source, 'menstrual')
             model.train(df)
             model.save()
-            print(f"   Done: Menstrual Tracking Model processed.")
+            
+            publish_prediction_event("user_mnstr", "menstrual", {"model": "MenstrualTrackingModel", "status": "processed"})
+            if producer:
+                producer.flush()
+                
+            print(f"   Done: Menstrual Tracking Model processed and event published.")
         except Exception as e:
             print(f"   Error in Menstrual step: {e}")
 

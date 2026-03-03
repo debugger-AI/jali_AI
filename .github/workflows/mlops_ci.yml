@@ -35,9 +35,9 @@ jobs:
       - name: Install lint dependencies
         run: pip install flake8
 
-      - name: Run flake8 on mlops, models, pipelines
+      - name: Run flake8 on mlops, models, pipelines, ai
         run: |
-          flake8 mlops/ models/ pipelines/ \
+          flake8 mlops/ models/ pipelines/ ai/ \
             --max-line-length 120 \
             --exclude=__pycache__,.venv,venv
 

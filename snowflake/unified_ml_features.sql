@@ -1,4 +1,3 @@
--- unify_jali_data.sql
 -- This script creates the Unified Feature Store in Snowflake
 -- It joins the Live PostgreSQL data with the Static Supplementary data.
 
