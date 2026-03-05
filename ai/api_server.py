@@ -1,5 +1,21 @@
 import os
 import logging
+import warnings
+
+# ---------------------------------------------------------------------------
+# GLOBAL SSL BYPASS — AfricasTalking SDK SSL is broken on Python 3.12 urllib3
+# This must be applied BEFORE any module that imports requests (africastalking)
+# ---------------------------------------------------------------------------
+import requests as _requests
+from urllib3.exceptions import InsecureRequestWarning
+warnings.simplefilter("ignore", InsecureRequestWarning)
+_orig_request = _requests.Session.request
+def _no_verify_request(self, *args, **kwargs):
+    kwargs.setdefault("verify", False)
+    return _orig_request(self, *args, **kwargs)
+_requests.Session.request = _no_verify_request
+# ---------------------------------------------------------------------------
+
 from fastapi import FastAPI, Form, BackgroundTasks
 from fastapi.responses import PlainTextResponse
 from dotenv import load_dotenv
