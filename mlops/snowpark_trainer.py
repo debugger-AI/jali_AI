@@ -131,7 +131,7 @@ def _train_pillar(session, pillar: str, config: dict, dry_run: bool, git_sha: st
         return
 
     if len(df) < 20:
-        print(f"   ⚠ Insufficient data ({len(df)} rows). Skipping {display}.")
+        print(f"   [WARNING] Insufficient data ({len(df)} rows). Skipping {display}.")
         return
 
     # 2. Prepare features and target
@@ -140,7 +140,7 @@ def _train_pillar(session, pillar: str, config: dict, dry_run: bool, git_sha: st
     target    = config["target"]
 
     if target not in df.columns:
-        print(f"   ⚠ Target column '{target}' not found. Skipping.")
+        print(f"   [WARNING] Target column '{target}' not found. Skipping.")
         return
 
     # Binarise continuous target: >= median = 1, else 0
@@ -151,7 +151,7 @@ def _train_pillar(session, pillar: str, config: dict, dry_run: bool, git_sha: st
 
     all_feature_cols = num_feats + cat_feats
     if not all_feature_cols:
-        print(f"   ⚠ No usable features found. Skipping.")
+        print(f"   [WARNING] No usable features found. Skipping.")
         return
 
     df = df.dropna(subset=[target])
@@ -173,7 +173,7 @@ def _train_pillar(session, pillar: str, config: dict, dry_run: bool, git_sha: st
     estimator.set_output_cols(["PREDICTION"])
 
     estimator.fit(session.create_dataframe(train_df[all_feature_cols + [target]]))
-    print(f"   ✅ Training complete ({len(train_df):,} train rows)")
+    print(f"   [SUCCESS] Training complete ({len(train_df):,} train rows)")
 
     # 5. Evaluate
     preds_sdf = estimator.predict(session.create_dataframe(test_df[all_feature_cols + [target]]))
