@@ -1,6 +1,6 @@
 import os
 import logging
-from fastapi import FastAPI, Form, Request, Response
+from fastapi import FastAPI, Form, BackgroundTasks
 from fastapi.responses import PlainTextResponse
 from dotenv import load_dotenv
 
@@ -27,29 +27,36 @@ alert_manager = AlertManager()
 # ---------------------------------------------------------------------------
 @app.post("/webhook/sms/inbound", response_class=PlainTextResponse)
 async def handle_inbound_sms(
+    background_tasks: BackgroundTasks,
     sender: str = Form(..., alias="from"),
     to: str = Form(...),
     text: str = Form(...),
 ):
     """
-    Receives an inbound SMS from AfricasTalking when a user replies to
-    a Jali agent message. The Jali AI agent generates an LLM response
-    and immediately sends it back as a real SMS.
+    Receives an inbound SMS from AfricasTalking when a user texts shortcode 90415.
+    - `to`     : the shortcode (90415) the user texted
+    - `sender` : the user's phone number we reply to
+    - `text`   : the message body
+    The Jali AI agent generates an LLM response and sends it back as SMS.
     """
-    logger.info(f"[INBOUND SMS] From {sender}: {text}")
+    logger.info(f"[INBOUND SMS] Shortcode={to} | From={sender} | Message='{text}'")
 
-    # Use sender phone as user_id for now (in production, resolve to real user_id)
-    user_id = sender.replace("+", "").replace(" ", "")
+    # Run the slow LLM + SMS reply in the background so AT gets an instant 200 OK
+    background_tasks.add_task(_reply_to_user, sender, text)
 
-    # Generate a real-time LLM reply
-    reply = llm_service.generate_reply(text, user_id)
-    logger.info(f"[AGENT REPLY] To {sender}: {reply}")
-
-    # Send the SMS reply back immediately using AfricasTalking
-    alert_manager.send_to_number(sender, reply)
-
-    # Respond with empty 200 OK so AfricasTalking doesn't retry
+    # Return immediately — AfricasTalking requires a fast response or it retries
     return ""
+
+
+def _reply_to_user(sender: str, text: str):
+    """Background task: generate LLM reply and send SMS back to the user."""
+    user_id = sender.replace("+", "").replace(" ", "")
+    try:
+        reply = llm_service.generate_reply(text, user_id)
+        logger.info(f"[AGENT REPLY] To {sender}: {reply}")
+        alert_manager.send_to_number(sender, reply)
+    except Exception as e:
+        logger.error(f"[REPLY ERROR] Failed to reply to {sender}: {e}")
 
 
 # ---------------------------------------------------------------------------

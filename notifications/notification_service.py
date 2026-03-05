@@ -14,6 +14,8 @@ class AfricasTalkingNotifier:
     def __init__(self):
         username = os.getenv("AT_USERNAME")
         api_key = os.getenv("AT_API_KEY")
+        # Prefer shortcode for two-way chat; fall back to alphanumeric sender ID
+        shortcode = os.getenv("AT_SHORTCODE")
         sender_id = os.getenv("AT_SENDER_ID", None)
 
         if not username or not api_key:
@@ -24,13 +26,18 @@ class AfricasTalkingNotifier:
 
         africastalking.initialize(username, api_key)
         self.sms = africastalking.SMS
-        self.sender_id = sender_id
+        # Shortcode takes priority — required for two-way chat replies
+        self.sender_id = shortcode or sender_id
 
-    def send_sms(self, phone: str, message: str) -> dict:
-        """Send an SMS to a single phone number."""
+    def send_sms(self, phone: str, message: str, sender_override: str = None) -> dict:
+        """
+        Send an SMS to a single phone number.
+        sender_override lets callers force a specific sender (e.g. shortcode for replies).
+        """
+        sender = sender_override or self.sender_id
         try:
-            response = self.sms.send(message, [phone], self.sender_id)
-            print(f"[SMS SENT] To {phone}: {response}")
+            response = self.sms.send(message, [phone], sender)
+            print(f"[SMS SENT] From {sender} To {phone}: {response}")
             return response
         except Exception as e:
             print(f"[SMS ERROR] {e}")
