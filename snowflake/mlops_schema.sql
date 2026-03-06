@@ -80,8 +80,42 @@ CREATE TABLE IF NOT EXISTS MLOPS.RETRAIN_FLAG (
     PROCESSED      BOOLEAN DEFAULT FALSE
 );
 
+);
+
 -- ---------------------------------------------------------------------------
--- 5. SNOWFLAKE GIT REPOSITORY INTEGRATION
+-- 5. INFERENCE LOGS — For Native Model Observability
+--    This table stores the inputs (features) and outputs (predictions)
+--    used by the ModelMonitor objects to track drift and performance.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS MLOPS.INFERENCE_LOGS (
+    EVENT_ID         NUMBER AUTOINCREMENT PRIMARY KEY,
+    PILLAR           VARCHAR(50),
+    MODEL_VERSION    VARCHAR(100),
+    TIMESTAMP        TIMESTAMP_NTZ DEFAULT CURRENT_TIMESTAMP(),
+    
+    -- Feature Columns (Shared across pillars)
+    ADHERENCE_SCORE  FLOAT,
+    BARRIERS_SCORE   FLOAT,
+    GENDER           VARCHAR(50),
+    AGE_GROUP        VARCHAR(50),
+    
+    -- Menstrual specific
+    AGE              FLOAT,
+    BMI              FLOAT,
+    CYCLE_LENGTH     FLOAT,
+    
+    -- Immunization specific
+    ART_STATUS       VARCHAR(50),
+    ELIGIBILITY      VARCHAR(50),
+    IMMUNIZATION_STATUS VARCHAR(50),
+    
+    -- Prediction and Ground Truth
+    PREDICTION       VARIANT,  -- Stores the model output
+    LABEL            VARIANT   -- Stores the actual outcome (Ground Truth)
+);
+
+-- ---------------------------------------------------------------------------
+-- 6. SNOWFLAKE GIT REPOSITORY INTEGRATION
 --    Connects Snowflake to your GitHub repo natively.
 --    After running this: Objects under the git branch become importable
 --    as Snowflake stored procedures and UDFs.

@@ -3,6 +3,13 @@
 -- Use this script to track model health, performance, and drift.
 -- ============================================================
 
+-- 0. NATIVE SNOWSIGHT MONITORING (BEST FOR CHARTS) --
+-- 1. In Snowsight, go to AI & ML > Models.
+-- 2. Select your pillar (e.g. JALI_HIV_ADHERENCE).
+-- 3. Click the MONITORS tab.
+-- 4. Select the MONITOR row (e.g. JALI_HIV_ADHERENCE_MONITOR).
+-- You will see 7 days of simulated drift and performance charts!
+
 -- 1. VIEW NATIVE MODEL REGISTRY
 -- This shows all models registered in the official Snowflake Model Registry.
 SHOW MODELS IN SCHEMA MLOPS;
