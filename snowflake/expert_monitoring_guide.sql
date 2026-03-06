@@ -17,18 +17,27 @@ SELECT
 FROM MLOPS.V_LATEST_MODEL_PERFORMANCE
 ORDER BY LAST_RETRAINED DESC;
 
--- 3. DATA DRIFT ALERTS (PSI)
+-- 3. DRIFT OBSERVABILITY (DATA STABILITY)
 -- Check if the distribution of incoming data has shifted significantly.
--- PSI > 0.1 indicates a warning, PSI > 0.25 indicates a critical drift.
+-- PSI > 0.1:  [MINOR]     Monitor the feature, might be seasonal.
+-- PSI > 0.25: [CRITICAL]  Retain the model immediately!
 SELECT 
     PILLAR, 
     FEATURE_NAME, 
     PSI_SCORE, 
-    STATUS, 
+    DRIFT_STATUS as SEVERITY, 
     MEASURED_AT
-FROM MLOPS.DRIFT_MONITOR
-WHERE STATUS != 'OK'
+FROM MLOPS.V_DRIFT_ALERTS
 ORDER BY MEASURED_AT DESC;
+
+-- Proactive SQL for identifying the "Wobblies" (Features drifting most)
+SELECT 
+    FEATURE_NAME, 
+    AVG(PSI_SCORE) as AVG_DRIFT,
+    COUNT(*) as ALERTS_COUNT
+FROM MLOPS.DRIFT_MONITOR
+WHERE DRIFT_STATUS != 'OK'
+GROUP BY 1 ORDER BY 2 DESC;
 
 -- 4. TRAINING HISTORY & AUDIT LOG
 -- Track how your models have evolved over time.
