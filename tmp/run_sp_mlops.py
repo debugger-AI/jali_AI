@@ -37,6 +37,11 @@ def deploy_and_run_sp():
         cursor.execute("CALL MLOPS.TRAIN_AND_REGISTER_PILLAR('tb_adherence')")
         print(f"   [RESULT] {cursor.fetchone()[0]}")
 
+        # Run for Immunization
+        print("\nRUNNING Immunization Registration (In-Snowflake)...")
+        cursor.execute("CALL MLOPS.TRAIN_AND_REGISTER_PILLAR('immunization')")
+        print(f"   [RESULT] {cursor.fetchone()[0]}")
+
     finally:
         conn.close()
 

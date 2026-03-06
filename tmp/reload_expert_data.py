@@ -59,7 +59,25 @@ try:
     cursor.execute("INSERT INTO FEATURES.UNIFIED_ADHERENCE_STORE (DISEASE_TYPE, PATIENT_ID, GENDER, AGE_GROUP, ADHERENCE_SCORE, BARRIERS_SCORE) SELECT 'HIV', INCLUDED_CASES, GENDER, CASE WHEN AGE_YEARS < 25 THEN 'Youth' ELSE 'Adult' END, PHQ_TOTAL_AF, MARSTOTAL FROM RAW.HIV_ADHERENCE_DATASET WHERE PHQ_TOTAL_AF IS NOT NULL")
     
     # Immunization (OVC)
-    cursor.execute("INSERT INTO FEATURES.UNIFIED_ADHERENCE_STORE (DISEASE_TYPE, PATIENT_ID, GENDER, AGE_GROUP, ADHERENCE_SCORE) SELECT 'OVC_LIVE', ovc_id, 'UNKNOWN', 'OVC', CASE WHEN suppression_status = 'Suppressed' THEN 1.0 ELSE 0.0 END FROM RAW.POSTGRES_OVC_CASES")
+    cursor.execute("""
+        INSERT INTO FEATURES.UNIFIED_ADHERENCE_STORE 
+            (DISEASE_TYPE, PATIENT_ID, GENDER, AGE_GROUP, ADHERENCE_SCORE, BARRIERS_SCORE, 
+             METADATA_JSON)
+        SELECT 
+            'OVC_LIVE', 
+            ovc_id, 
+            'UNKNOWN', 
+            'OVC', 
+            CASE WHEN suppression_status = 'Suppressed' THEN 1.0 ELSE 0.0 END,
+            NULL,
+            OBJECT_CONSTRUCT(
+                'art_status', COALESCE(art_status, 'Unknown'),
+                'eligibility', COALESCE(eligibility, 'Unknown'),
+                'immunization_status', COALESCE(immunization_status, 'Unknown'),
+                'chv_id', COALESCE(chv_id, 'Unknown')
+            )
+        FROM RAW.POSTGRES_OVC_CASES
+    """)
     
     # Menstrual
     cursor.execute("INSERT INTO FEATURES.FERTILITY_STORE (CLIENTID, AGE, BMI, CYCLE_LENGTH, HAS_PEAK_OVULATION, IS_REGULAR_CYCLE) SELECT CLIENTID, AGE, BMI, LENGTHOFCYCLE, CYCLEWITHPEAKORNOT, CASE WHEN LENGTHOFCYCLE BETWEEN 21 AND 35 THEN 1 ELSE 0 END FROM RAW.FEDCYCLEDATA")

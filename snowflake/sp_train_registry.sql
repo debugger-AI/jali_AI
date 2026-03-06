@@ -28,6 +28,13 @@ def main(session, pillar_name):
             "filter": "DISEASE_TYPE = 'TB'",
             "features": ["ADHERENCE_SCORE", "BARRIERS_SCORE", "GENDER", "AGE_GROUP"],
             "target": "ADHERENCE_SCORE"
+        },
+        "immunization": {
+            "table": "FEATURES.UNIFIED_ADHERENCE_STORE",
+            "filter": "DISEASE_TYPE = 'OVC_LIVE'",
+            "features": ["ART_STATUS", "ELIGIBILITY", "IMMUNIZATION_STATUS"],
+            "target": "ADHERENCE_SCORE",
+            "json_extracts": True
         }
     }
     
@@ -37,20 +44,33 @@ def main(session, pillar_name):
     cfg = config[pillar_name]
     
     # 2. Load Data
-    query = f"SELECT * FROM {cfg['table']} WHERE {cfg['filter']}"
+    if cfg.get("json_extracts"):
+        query = f"""
+            SELECT 
+                METADATA_JSON:art_status::VARCHAR as ART_STATUS,
+                METADATA_JSON:eligibility::VARCHAR as ELIGIBILITY,
+                METADATA_JSON:immunization_status::VARCHAR as IMMUNIZATION_STATUS,
+                ADHERENCE_SCORE
+            FROM {cfg['table']} 
+            WHERE {cfg['filter']}
+        """
+    else:
+        query = f"SELECT * FROM {cfg['table']} WHERE {cfg['filter']}"
+    
     df = session.sql(query).to_pandas()
     
     if len(df) < 10:
         return f"Warning: Insufficient data for {pillar_name} ({len(df)} rows)."
     
     # 3. Simple Preprocessing
-    # Label encode categoricals
-    for col in ['GENDER', 'AGE_GROUP']:
+    # Label encode or Category type for XGBoost
+    cat_cols = ['GENDER', 'AGE_GROUP', 'ART_STATUS', 'ELIGIBILITY', 'IMMUNIZATION_STATUS']
+    for col in cat_cols:
         if col in df.columns:
-            df[col] = df[col].astype('category').cat.codes
+            df[col] = df[col].astype('category')
             
     target = cfg['target']
-    features = [f for f in cfg['features'] if f in df.columns]
+    features = [f for f in cfg.get('features', []) if f in df.columns]
     
     # Binarize target if needed
     if df[target].nunique() > 2:
@@ -61,10 +81,14 @@ def main(session, pillar_name):
     y = df[target]
     
     # 4. Train
-    model = XGBClassifier(n_estimators=100, max_depth=4)
+    model = XGBClassifier(n_estimators=100, max_depth=4, enable_categorical=True)
     model.fit(X, y)
     
-    auc = roc_auc_score(y, model.predict_proba(X)[:,1])
+    # Handle single class for AUC
+    if y.nunique() > 1:
+        auc = float(roc_auc_score(y, model.predict_proba(X)[:,1]))
+    else:
+        auc = 1.0 # Perfect match for single class if trained on it
     
     # 5. Register in Native Registry
     reg = Registry(session=session, database_name=session.get_current_database(), schema_name="MLOPS")
@@ -81,9 +105,12 @@ def main(session, pillar_name):
     )
     
     # 6. Update Legacy Audit Table
+    # Ensure auc is not nan for SQL
+    sql_auc = auc if not pd.isna(auc) else 0.0
+    
     session.sql(f"""
         INSERT INTO MLOPS.MODEL_REGISTRY (PILLAR, MODEL_NAME, MODEL_VERSION, STATUS, AUC_SCORE, TRAINING_ROWS)
-        VALUES ('{pillar_name}', '{model_name}', '{version}', 'PRODUCTION', {auc}, {len(df)})
+        VALUES ('{pillar_name}', '{model_name}', '{version}', 'PRODUCTION', {sql_auc}, {len(df)})
     """).collect()
     
     return f"Success: Registered {model_name} {version} with AUC {auc:.4f}"

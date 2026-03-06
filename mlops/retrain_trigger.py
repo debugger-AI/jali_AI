@@ -112,7 +112,7 @@ def check_and_trigger(force: bool = False, force_pillar: str = "all") -> int:
 
     session.close()
     print(f"[Trigger] Done. Retrained: {retrained}")
-    return 1
+    return 0 # Success (even if we triggered training)
 
 
 if __name__ == "__main__":

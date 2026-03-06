@@ -56,10 +56,10 @@ PILLAR_CONFIG = {
     },
     "immunization": {
         "display":          "Immunization Tracker",
-        "feature_table":    "FEATURES.UNIFIED_ADHERENCE_STORE",
+        "feature_table":    "(SELECT METADATA_JSON:art_status::VARCHAR as ART_STATUS, METADATA_JSON:eligibility::VARCHAR as ELIGIBILITY, METADATA_JSON:immunization_status::VARCHAR as IMMUNIZATION_STATUS, ADHERENCE_SCORE, DISEASE_TYPE FROM FEATURES.UNIFIED_ADHERENCE_STORE)",
         "filter":           "DISEASE_TYPE = 'OVC_LIVE'",
-        "numeric_features": [], # target is already included, avoid duplicates
-        "cat_features":     [],
+        "numeric_features": [],
+        "cat_features":     ["ART_STATUS", "ELIGIBILITY", "IMMUNIZATION_STATUS"],
         "target":           "ADHERENCE_SCORE",
         "estimator":        "XGBClassifier",
     },
