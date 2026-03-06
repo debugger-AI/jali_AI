@@ -51,3 +51,31 @@ services:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: broker:29092
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+
+  jali-agent-api:
+    build:
+      context: .
+      dockerfile: ai/Dockerfile
+    container_name: jali-agent-api
+    depends_on:
+      - broker
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=broker:29092
+    command: [ "uvicorn", "ai.api_server:app", "--host", "0.0.0.0", "--port", "8000" ]
+
+  jali-agent-consumer:
+    build:
+      context: .
+      dockerfile: ai/Dockerfile
+    container_name: jali-agent-consumer
+    depends_on:
+      - broker
+    env_file:
+      - .env
+    environment:
+      - KAFKA_BOOTSTRAP_SERVERS=broker:29092
+    command: [ "python", "ai/kafka_alert_consumer.py" ]
