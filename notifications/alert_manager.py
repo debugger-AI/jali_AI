@@ -2,7 +2,7 @@ import os
 import logging
 from dotenv import load_dotenv
 
-from .notification_service import AfricasTalkingNotifier
+from .notification_service import BaseNotifier
 
 load_dotenv()
 logger = logging.getLogger(__name__)
@@ -11,7 +11,6 @@ logger = logging.getLogger(__name__)
 def _load_contact(user_id: str) -> dict:
     """
     Loads user contact info from environment variables.
-    In production, this should query your PostgreSQL or Snowflake database.
     Format: USER_<ID>_PHONE=+2547XXXXXXXX
     """
     phone = os.getenv(f"USER_{user_id}_PHONE")
@@ -28,22 +27,10 @@ class AlertManager:
     """High-level manager to dispatch AI-generated messages to users."""
 
     def __init__(self):
-        try:
-            self.notifier = AfricasTalkingNotifier()
-            logger.info("AfricasTalking notifier initialized.")
-        except ValueError as e:
-            logger.warning(f"Notifier not configured: {e}. Running in DRY_RUN mode.")
-            self.notifier = None
+        self.notifier = BaseNotifier()
+        logger.info("Base notifier initialized.")
 
     def _send(self, contact: dict, message: str, channel: str):
-        # Fallback to dry run if notifier isn't configured
-        if not self.notifier:
-            logger.info(
-                f"[DRY RUN] Would send {channel} to "
-                f"{contact.get('phone') or contact.get('whatsapp', 'unknown')}: {message}"
-            )
-            return
-
         if channel == "sms" and contact.get("phone"):
             self.notifier.send_sms(contact["phone"], message)
         elif channel == "whatsapp" and contact.get("whatsapp"):
@@ -82,8 +69,5 @@ class AlertManager:
         self._send(contact, message, channel)
 
     def send_to_number(self, phone: str, message: str) -> None:
-        """Send directly to a known phone number (used in real-time webhook replies)."""
-        if not self.notifier:
-            logger.info(f"[DRY RUN] Would SMS {phone}: {message}")
-            return
+        """Send directly to a known phone number."""
         self.notifier.send_sms(phone, message)
