@@ -52,13 +52,13 @@ PILLAR_CONFIG = {
         "numeric_features": ["AGE", "BMI", "CYCLE_LENGTH"],
         "cat_features":     [],
         "target":           "HAS_PEAK_OVULATION",
-        "estimator":        "LogisticRegression",
+        "estimator":        "XGBClassifier",
     },
     "immunization": {
         "display":          "Immunization Tracker",
         "feature_table":    "FEATURES.UNIFIED_ADHERENCE_STORE",
         "filter":           "DISEASE_TYPE = 'OVC_LIVE'",
-        "numeric_features": ["ADHERENCE_SCORE"],
+        "numeric_features": [], # target is already included, avoid duplicates
         "cat_features":     [],
         "target":           "ADHERENCE_SCORE",
         "estimator":        "XGBClassifier",
@@ -91,28 +91,21 @@ def _load_data(session, config: dict) -> pd.DataFrame:
 
 
 def _build_estimator(estimator_name: str):
-    """Return a configured Snowpark ML estimator."""
-    from snowflake.ml.modeling.xgboost import XGBClassifier
-    from snowflake.ml.modeling.linear_model import LogisticRegression
+    """Return a configured estimator. Uses raw XGBoost to avoid broken torch DLLs locally."""
+    from xgboost import XGBClassifier
+    # from snowflake.ml.modeling.linear_model import LogisticRegression # Skip for now
 
     if estimator_name == "XGBClassifier":
         return XGBClassifier(
-            input_cols=None,   # set at train time
-            label_cols=None,
             n_estimators=100,
             learning_rate=0.05,
             max_depth=4,
             random_state=42,
         )
-    elif estimator_name == "LogisticRegression":
-        return LogisticRegression(
-            input_cols=None,
-            label_cols=None,
-            max_iter=200,
-            random_state=42,
-        )
     else:
-        raise ValueError(f"Unknown estimator: {estimator_name}")
+        # Fallback to a simple sklearn model if needed
+        from sklearn.linear_model import LogisticRegression
+        return LogisticRegression(max_iter=200, random_state=42)
 
 
 def _train_pillar(session, pillar: str, config: dict, dry_run: bool, git_sha: str):
@@ -149,6 +142,10 @@ def _train_pillar(session, pillar: str, config: dict, dry_run: bool, git_sha: st
         df["__TARGET__"] = (df[target] >= median).astype(int)
         target = "__TARGET__"
 
+    # Label encode categorical columns for XGBoost compatibility
+    for col in cat_feats:
+        df[col] = df[col].astype('category').cat.codes.astype(int)
+
     all_feature_cols = num_feats + cat_feats
     if not all_feature_cols:
         print(f"   [WARNING] No usable features found. Skipping.")
@@ -166,40 +163,39 @@ def _train_pillar(session, pillar: str, config: dict, dry_run: bool, git_sha: st
 
     train_df, test_df = train_test_split(df, test_size=0.2, random_state=42)
 
-    # 4. Train using Snowpark ML estimator
+    # 4. Train using raw estimator (faster locally, avoids DLL issues)
     estimator = _build_estimator(config["estimator"])
-    estimator.set_input_cols(all_feature_cols)
-    estimator.set_label_cols([target])
-    estimator.set_output_cols(["PREDICTION"])
-
-    estimator.fit(session.create_dataframe(train_df[all_feature_cols + [target]]))
+    X_train = train_df[all_feature_cols]
+    y_train = train_df[target]
+    
+    estimator.fit(X_train, y_train)
     print(f"   [SUCCESS] Training complete ({len(train_df):,} train rows)")
-
+ 
     # 5. Evaluate
-    preds_sdf = estimator.predict(session.create_dataframe(test_df[all_feature_cols + [target]]))
-    preds_df  = preds_sdf.to_pandas()
-    y_true    = preds_df[target.upper()]
-    y_pred    = preds_df["PREDICTION"]
-
+    X_test = test_df[all_feature_cols]
+    y_true = test_df[target]
+    
+    y_pred = estimator.predict(X_test)
     try:
-        y_prob = preds_df.get("PREDICTION_PROBA_1", y_pred)
+        y_prob = estimator.predict_proba(X_test)[:, 1]
         auc    = roc_auc_score(y_true, y_prob)
     except Exception:
         auc    = 0.0
-
+ 
     f1        = f1_score(y_true, y_pred, zero_division=0)
     precision = precision_score(y_true, y_pred, zero_division=0)
     recall    = recall_score(y_true, y_pred, zero_division=0)
-
+ 
     metrics = {
         "auc": auc, "f1": f1,
         "precision": precision, "recall": recall,
         "training_rows": len(train_df)
     }
     print(f"   AUC={auc:.4f}  F1={f1:.4f}  Precision={precision:.4f}  Recall={recall:.4f}")
-
-    # 6. Register model and promote if AUC improved
-    model_id = register_model(session, pillar, metrics, git_sha)
+ 
+    # 6. Register model locally and to Snowflake Native Registry
+    sample_input = X_train.head(10)
+    model_id = register_model(session, pillar, metrics, estimator, sample_input, git_sha)
     promote_to_production(session, pillar, model_id)
 
     # 7. Drift check

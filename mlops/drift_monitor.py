@@ -74,7 +74,7 @@ def compute_and_log_drift(session, model_id: int, pillar: str,
         drift_results.append((feature, psi, status))
 
         if status != "OK":
-            print(f"   [Drift] ⚠ {feature}: PSI={psi:.4f} ({status})")
+            print(f"   [Drift] [WARNING] {feature}: PSI={psi:.4f} ({status})")
 
     # Write all results to Snowflake
     for feature, psi, status in drift_results:
@@ -87,9 +87,9 @@ def compute_and_log_drift(session, model_id: int, pillar: str,
 
     significant = [r for r in drift_results if r[2] == "SIGNIFICANT"]
     if significant:
-        print(f"   [Drift] 🔴 {len(significant)} features with significant drift in '{pillar}'.")
+        print(f"   [Drift] [ERROR] {len(significant)} features with significant drift in '{pillar}'.")
         print(f"   [Drift]    Retraining is strongly recommended.")
     else:
-        print(f"   [Drift] ✅ No significant drift detected for '{pillar}'.")
+        print(f"   [Drift] [SUCCESS] No significant drift detected for '{pillar}'.")
 
     return drift_results

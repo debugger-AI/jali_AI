@@ -41,7 +41,7 @@ jobs:
       - name: Report outcome
         run: |
           if [ "${{ steps.trigger_check.outputs.exit_code }}" = "1" ]; then
-            echo "✅ Retraining was triggered for at least one pillar."
+            echo "Retraining was triggered for at least one pillar."
           else
-            echo "ℹ️  No new data detected. No retraining needed."
+            echo "No new data detected. No retraining needed."
           fi
