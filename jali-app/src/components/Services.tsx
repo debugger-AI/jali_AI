@@ -1,84 +1,70 @@
-import { Bot, Baby, BookOpen, Stethoscope } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { useScrollAnimation } from "@/hooks/use-scroll-animation";
+import { Pill, Activity, Syringe, Calendar } from "lucide-react";
 
 const services = [
   {
-    icon: Bot,
-    title: "AI Health Assistant",
-    description: "Get instant, reliable answers to your health questions in your local language. Available 24/7 for guidance when you need it most.",
-    color: "text-primary",
-    bgColor: "bg-primary/10",
+    icon: Pill,
+    title: "HIV Adherence",
+    description: "AI-driven reminders and educational support to ensure consistent medication adherence for HIV+ mothers, promoting long-term health.",
+    color: "bg-teal-500",
   },
   {
-    icon: Baby,
-    title: "Maternal Care Support",
-    description: "Comprehensive guidance for expectant and new mothers. From prenatal care to postnatal support, we're here every step of the way.",
-    color: "text-secondary",
-    bgColor: "bg-secondary/10",
+    icon: Activity,
+    title: "TB Adherence",
+    description: "Personalized tracking and guidance for Tuberculosis treatment, helping patients stay on course and prevent drug resistance.",
+    color: "bg-pink-500",
   },
   {
-    icon: BookOpen,
-    title: "Community Education",
-    description: "Health literacy programs designed for communities. Empowering families with knowledge to make informed health decisions.",
-    color: "text-primary",
-    bgColor: "bg-primary/10",
+    icon: Syringe,
+    title: "Immunization",
+    description: "Automated vaccination schedules and alerts for children, ensuring timely protection against preventable diseases.",
+    color: "bg-teal-600",
   },
   {
-    icon: Stethoscope,
-    title: "Healthcare Access",
-    description: "Connecting underserved populations to essential healthcare services. Bridging the gap between communities and quality care.",
-    color: "text-secondary",
-    bgColor: "bg-secondary/10",
+    icon: Calendar,
+    title: "Family Planning",
+    description: "Comprehensive menstrual health tracking and reproductive education to empower women with knowledge about their bodies.",
+    color: "bg-pink-600",
   },
 ];
 
 const Services = () => {
-  const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
-
   return (
-    <section id="services" className="py-20 md:py-32 bg-muted/30">
-      <div
-        ref={ref}
-        className={`container mx-auto px-4 transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-          }`}
-      >
-        <div className="container mx-auto px-4">
-          {/* Section Header */}
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <span className="text-primary font-semibold text-sm uppercase tracking-wider">Our Services</span>
-            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mt-4 mb-6">
-              How We Help Communities Thrive
-            </h2>
-            <p className="text-lg text-muted-foreground">
-              Through innovative AI technology and compassionate care, we provide accessible health solutions
-              tailored to the needs of mothers, children, and communities.
-            </p>
-          </div>
+    <section id="services" className="py-24 bg-white">
+      <div className="container mx-auto px-4">
+        {/* Section Header */}
+        <div className="text-center max-w-2xl mx-auto mb-20">
+          <p className="text-secondary font-black uppercase tracking-[0.2em] text-xs mb-4">Urgent Causes</p>
+          <h2 className="text-3xl md:text-5xl font-black text-slate-900 mb-6">
+            We Help the People in Need
+          </h2>
+          <div className="w-16 h-1 bg-primary mx-auto mb-8 rounded-full" />
+        </div>
 
-          {/* Services Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8 max-w-5xl mx-auto">
-            {services.map((service, index) => (
-              <Card
-                key={service.title}
-                className={`group hover:shadow-xl transition-all duration-500 border-border/50 bg-card hover:-translate-y-2 cursor-pointer ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-                  }`}
-                style={{ transitionDelay: `${index * 150}ms` }}
-              >
-                <CardHeader className="pb-4">
-                  <div className={`w-14 h-14 rounded-2xl ${service.bgColor} flex items-center justify-center mb-4 group-hover:scale-110 group-hover:rotate-3 transition-all duration-300`}>
-                    <service.icon size={28} className={`${service.color} transition-transform duration-300`} />
-                  </div>
-                  <CardTitle className="text-xl md:text-2xl group-hover:text-primary transition-colors duration-300">{service.title}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-base leading-relaxed">
-                    {service.description}
-                  </CardDescription>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+        {/* Services Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-7xl mx-auto">
+          {services.map((service, index) => (
+            <div
+              key={service.title}
+              className="flex flex-col bg-slate-50 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 group"
+            >
+              <div className={`h-48 ${service.color} flex items-center justify-center relative overflow-hidden`}>
+                <div className="absolute inset-0 bg-black/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <service.icon size={80} className="text-white/20 absolute -right-4 -bottom-4 group-hover:scale-110 transition-transform" />
+                <service.icon size={64} className="text-white relative z-10 drop-shadow-lg group-hover:scale-110 transition-transform" />
+              </div>
+              <div className="p-8 flex flex-col flex-grow">
+                <h3 className="text-2xl font-black text-slate-900 mb-4">
+                  {service.title}
+                </h3>
+                <p className="text-slate-500 text-sm leading-relaxed mb-6 flex-grow">
+                  {service.description}
+                </p>
+                <button className="text-xs font-bold uppercase tracking-widest text-primary hover:text-secondary transition-colors flex items-center gap-2">
+                  Read more <span>→</span>
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>

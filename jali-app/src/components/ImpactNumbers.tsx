@@ -1,6 +1,5 @@
 import { useEffect, useState, useRef } from "react";
 import { Users, Heart, MessageCircle, Globe } from "lucide-react";
-import { useScrollAnimation } from "@/hooks/use-scroll-animation";
 
 const stats = [
   {
@@ -47,7 +46,7 @@ const AnimatedCounter = ({ value, suffix }: { value: number; suffix: string }) =
           const steps = 60;
           const stepValue = value / steps;
           let current = 0;
-          
+
           const timer = setInterval(() => {
             current += stepValue;
             if (current >= value) {
@@ -80,51 +79,38 @@ const AnimatedCounter = ({ value, suffix }: { value: number; suffix: string }) =
   };
 
   return (
-    <div ref={ref} className="text-4xl md:text-5xl lg:text-6xl font-bold text-primary">
+    <div ref={ref} className="text-4xl md:text-5xl lg:text-6xl font-black text-primary">
       {formatNumber(count)}{suffix}
     </div>
   );
 };
 
 const ImpactNumbers = () => {
-  const { ref, isVisible } = useScrollAnimation({ threshold: 0.1 });
-
   return (
-    <section className="py-20 md:py-28 bg-gradient-to-r from-secondary/5 via-primary/5 to-secondary/5">
-      <div
-        ref={ref}
-        className={`container mx-auto px-4 transition-all duration-700 ${
-          isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-        }`}
-      >
+    <section className="py-24 bg-white">
+      <div className="container mx-auto px-4">
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-primary font-semibold text-sm uppercase tracking-wider">Our Impact</span>
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mt-4 mb-6">
+        <div className="text-center max-w-2xl mx-auto mb-16">
+          <p className="text-secondary font-black uppercase tracking-[0.2em] text-xs mb-4">Our Impact</p>
+          <h2 className="text-3xl md:text-5xl font-black text-slate-900 mb-6">
             Numbers That Tell Our Story
           </h2>
-          <p className="text-lg text-muted-foreground">
-            Every number represents a family empowered, a mother supported, 
-            and a community strengthened through accessible healthcare.
-          </p>
+          <div className="w-16 h-1 bg-primary mx-auto mb-8 rounded-full" />
         </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {stats.map((stat, index) => (
+          {stats.map((stat) => (
             <div
               key={stat.label}
-              className={`text-center p-6 rounded-3xl bg-card border border-border hover:shadow-xl hover:border-primary/30 transition-all duration-500 hover:-translate-y-2 cursor-pointer group ${
-                isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-              }`}
-              style={{ transitionDelay: `${index * 100}ms` }}
+              className="text-center p-8 rounded-2xl bg-slate-50 border border-slate-200 hover:shadow-xl hover:border-primary/30 transition-all duration-300 hover:-translate-y-2 cursor-pointer group"
             >
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center group-hover:scale-110 group-hover:rotate-6 transition-all duration-300">
+              <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-primary/10 flex items-center justify-center group-hover:scale-110 group-hover:bg-primary/20 transition-all duration-300">
                 <stat.icon size={32} className="text-primary" />
               </div>
               <AnimatedCounter value={stat.value} suffix={stat.suffix} />
-              <p className="text-lg font-semibold text-foreground mt-2 group-hover:text-primary transition-colors duration-300">{stat.label}</p>
-              <p className="text-sm text-muted-foreground mt-1">{stat.description}</p>
+              <p className="text-lg font-bold text-slate-900 mt-3">{stat.label}</p>
+              <p className="text-sm text-slate-500 mt-1">{stat.description}</p>
             </div>
           ))}
         </div>

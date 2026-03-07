@@ -1,74 +1,60 @@
-import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Play, MapPin } from "lucide-react";
+import { ArrowRight, Heart } from "lucide-react";
 import heroImage from "@/assets/hero-image.jpg";
-import { useParallax } from "@/hooks/use-parallax";
+
 const Hero = () => {
-  const parallaxOffset = useParallax(0.4);
-  return <section className="relative min-h-screen flex items-center overflow-hidden">
-    {/* Full-bleed background image with parallax */}
-    <div className="absolute inset-0">
-      <img src={heroImage} alt="Mothers and children receiving healthcare in a community setting" className="w-full h-[120%] object-cover transition-transform duration-100 ease-out" style={{
-        transform: `translateY(${parallaxOffset}px) scale(1.1)`
-      }} />
-      {/* Subtle gradient overlay for text readability */}
-      <div className="absolute inset-0 bg-gradient-to-r from-foreground/70 via-foreground/40 to-transparent" />
-    </div>
+  return (
+    <section className="relative min-h-screen flex items-center pt-20 md:pt-44 pb-20 overflow-hidden">
+      {/* Background Image */}
+      <div className="absolute inset-0 z-0">
+        <img
+          src={heroImage}
+          alt="Maternal Health"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-black/20" />
+      </div>
 
-    <div className="container mx-auto px-4 relative z-10 pt-20 flex items-center justify-center">
-      <div className="max-w-3xl mx-auto text-center flex flex-col items-center">
-        {/* Main Headline - Elegant serif-style */}
-        <h1 className="text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-light text-background mb-6 leading-tight tracking-tight text-center whitespace-nowrap">
-          AI Powered Extension for <span className="font-normal">Social Workers</span>
-        </h1>
+      <div className="container mx-auto px-4 relative z-10">
+        <div className="max-w-xl bg-white p-8 md:p-12 rounded-lg shadow-2xl animate-in fade-in slide-in-from-left duration-1000">
+          <div className="inline-flex items-center gap-2 bg-slate-900 text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-widest mb-6">
+            <Heart size={14} className="text-secondary" />
+            Helping African Mothers
+          </div>
 
-        {/* Subheadline */}
-        <p className="text-lg md:text-xl text-background/90 max-w-xl mx-auto mb-10 leading-relaxed">
-          Leveraging <span className="font-semibold">artificial intelligence</span> to strengthen
-          community health systems, support <span className="font-semibold">frontline health workers</span>,
-          and deliver <span className="font-semibold">life-saving care</span> to those who need it most.
-        </p>
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-black text-slate-900 mb-6 leading-tight">
+            AI-Powered Health for Every <span className="text-primary italic">Mother</span> & Child.
+          </h1>
 
-        {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <Button size="xl" variant="hero" className="group">
-            Explore Our Platform
-            <span className="inline-block transition-transform group-hover:translate-x-1">→</span>
-          </Button>
-          <Link to="/login">
-            <Button size="xl" variant="warm" className="group">
-              Get Started
-              <ArrowRight size={18} className="ml-1 transition-transform group-hover:translate-x-1" />
+          <p className="text-slate-600 text-lg mb-8 leading-relaxed">
+            Empowering community health workers with cutting-edge AI to provide
+            compassionate, life-saving care to underserved families across the globe.
+          </p>
+
+          <div className="grid grid-cols-2 gap-4 mb-8">
+            <div className="border-l-4 border-primary pl-4">
+              <span className="block text-2xl font-black text-slate-900">1.2M+</span>
+              <span className="text-xs text-slate-500 uppercase font-bold tracking-wider">Lives Impacted</span>
+            </div>
+            <div className="border-l-4 border-secondary pl-4">
+              <span className="block text-2xl font-black text-slate-900">500+</span>
+              <span className="text-xs text-slate-500 uppercase font-bold tracking-wider">Health Centers</span>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4">
+            <Button className="bg-secondary hover:bg-secondary/90 text-white h-14 px-8 rounded-md font-bold text-lg group">
+              Donate now
+              <ArrowRight className="ml-2 w-5 h-5 transition-transform group-hover:translate-x-1" />
             </Button>
-          </Link>
-        </div>
-      </div>
-    </div>
-
-    {/* Bottom section with location and video CTA */}
-    <div className="absolute bottom-0 left-0 right-0 z-10">
-      <div className="container mx-auto px-4 pb-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-          {/* Location indicator */}
-          <div className="flex items-center gap-2 text-background/80">
-            <MapPin size={16} />
-            <span className="text-sm">Serving communities across Kenya</span>
-          </div>
-
-          {/* Video CTA */}
-          <div className="flex items-center gap-4">
-            <button className="relative w-14 h-14 rounded-full bg-background/20 backdrop-blur-sm border border-background/30 flex items-center justify-center hover:bg-background/30 transition-all duration-300 group hover:scale-110">
-              {/* Pulse ring animation */}
-              <span className="absolute inset-0 rounded-full bg-background/20 animate-ping" />
-              <Play size={20} className="text-background ml-1 relative z-10" fill="currentColor" />
-            </button>
-            <p className="text-sm text-background/90 max-w-[200px] hidden sm:block">
-              Watch how Jali.ai helps communities and families access AI technology to better themselves           <span className="font-semibold">mothers and children</span> access better healthcare.
-            </p>
+            <Button variant="outline" className="border-slate-200 text-slate-700 h-14 px-8 rounded-md font-bold text-lg hover:bg-slate-50">
+              Our Mission
+            </Button>
           </div>
         </div>
       </div>
-    </div>
-  </section>;
+    </section>
+  );
 };
+
 export default Hero;

@@ -1,5 +1,6 @@
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
+import HowToHelp from "@/components/HowToHelp";
 import Services from "@/components/Services";
 import ImpactMap from "@/components/ImpactMap";
 import ImpactNumbers from "@/components/ImpactNumbers";
@@ -12,12 +13,13 @@ const Index = () => {
       <Header />
       <main>
         <Hero />
+        <HowToHelp />
         <Services />
         <ImpactMap />
         <ImpactNumbers />
       </main>
       <Footer />
-      
+
     </div>
   );
 };
