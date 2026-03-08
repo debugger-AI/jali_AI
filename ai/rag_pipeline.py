@@ -39,8 +39,11 @@ def load_pdfs(data_dir: Path) -> List[dict]:
             doc = fitz.open(str(pdf_path))
             category = pdf_path.parent.name  # GBV or Nani
             page_count = len(doc)
+            max_pages = min(page_count, 50)  # Cap large books to 50 pages for fast testing
+            if page_count > 50:
+                logger.info(f"  {pdf_path.name} has {page_count} pages, indexing first 50")
             
-            for page_num in range(page_count):
+            for page_num in range(max_pages):
                 page = doc[page_num]
                 text = page.get_text().strip()
                 if len(text) < 50:  # skip near-empty pages
@@ -146,6 +149,7 @@ class JaliVectorStore:
                 all_ids.append(doc_id)
         
         # Batch insert (ChromaDB handles embedding via its default model)
+        import time
         batch_size = 100
         total = 0
         for i in range(0, len(all_chunks), batch_size):
@@ -160,6 +164,7 @@ class JaliVectorStore:
             )
             total += len(batch_chunks)
             logger.info(f"Ingested batch: {total}/{len(all_chunks)} chunks")
+            time.sleep(0.1)  # small pause to avoid compaction internal error
         
         logger.info(f"Total chunks in store: {collection.count()}")
         return collection.count()
