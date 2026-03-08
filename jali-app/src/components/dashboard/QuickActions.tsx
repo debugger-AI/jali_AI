@@ -1,4 +1,4 @@
-import { Plus, FileText, MapPin, Phone, Sparkles, Calendar } from "lucide-react";
+import { Plus, FileText, MapPin, Calendar } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const actions = [
@@ -15,27 +15,15 @@ const actions = [
     accent: "secondary" as const,
   },
   {
-    icon: Sparkles,
-    label: "AI Insights",
-    description: "Get recommendations",
-    accent: "primary" as const,
-  },
-  {
     icon: FileText,
     label: "Report",
     description: "Generate a report",
-    accent: "secondary" as const,
+    accent: "primary" as const,
   },
   {
     icon: Calendar,
     label: "Schedule",
     description: "Plan visits",
-    accent: "primary" as const,
-  },
-  {
-    icon: Phone,
-    label: "Contact",
-    description: "Reach a colleague",
     accent: "secondary" as const,
   },
 ];
