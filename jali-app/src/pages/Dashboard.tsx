@@ -83,9 +83,13 @@ const Dashboard = () => {
     setMessages(p => [...p, { role: "user", text }]);
     setIsSending(true);
     try {
-      const res = await fetch(`${API_BASE}/api/voice/tts`, { method: "POST", body: new URLSearchParams({ text }) });
-      // For now just echo via LLM if available, else local
-      setMessages(p => [...p, { role: "assistant", text: "Asante kwa ujumbe wako. Nitakusaidia." }]);
+      const res = await fetch(`${API_BASE}/api/chat`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text, session_id: "dashboard" }),
+      });
+      const data = await res.json();
+      setMessages(p => [...p, { role: "assistant", text: data.response || data.error || "No response" }]);
     } catch {
       setMessages(p => [...p, { role: "assistant", text: "Server offline. Try again later." }]);
     }

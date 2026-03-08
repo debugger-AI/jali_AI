@@ -29,10 +29,10 @@ import jaliLogo from "@/assets/jali-logo.svg";
 
 const mainNav = [
   { title: "Home", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Cases", url: "/dashboard/cases", icon: FolderOpen, badge: "12" },
-  { title: "Community", url: "/dashboard/community", icon: Users },
-  { title: "Field Map", url: "/dashboard/map", icon: MapPin },
-  { title: "Analytics", url: "/dashboard/analytics", icon: BarChart3 },
+  { title: "Cases", url: "/dashboard/cases", icon: null, badge: "12" },
+  { title: "Community", url: "/dashboard/community", icon: null },
+  { title: "Field Map", url: "/dashboard/map", icon: null },
+  { title: "Analytics", url: "/dashboard/analytics", icon: null },
 ];
 
 const toolsNav = [
@@ -78,11 +78,11 @@ export function DashboardSidebar() {
                     isActive={isActive(item.url)}
                     onClick={() => navigate(item.url)}
                     className={`mx-2 rounded-lg text-sm transition-colors ${isActive(item.url)
-                        ? "bg-slate-100 text-slate-900 font-medium"
-                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                      ? "bg-slate-100 text-slate-900 font-medium"
+                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
                       }`}
                   >
-                    <item.icon className="h-4 w-4" />
+                    {item.icon && <item.icon className="h-4 w-4" />}
                     <span>{item.title}</span>
                     {item.badge && (
                       <span className="ml-auto text-[10px] font-medium text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
@@ -110,8 +110,8 @@ export function DashboardSidebar() {
                     isActive={isActive(item.url)}
                     onClick={() => navigate(item.url)}
                     className={`mx-2 rounded-lg text-sm transition-colors ${isActive(item.url)
-                        ? "bg-slate-100 text-slate-900 font-medium"
-                        : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
+                      ? "bg-slate-100 text-slate-900 font-medium"
+                      : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
                       }`}
                   >
                     <item.icon className="h-4 w-4" />
