@@ -2,8 +2,7 @@
 Jali Chat Service
 - RAG-powered conversational AI
 - Bilingual: Swahili + English
-- Uses HuggingFace Inference API for Swahili-capable model
-- Falls back to OpenAI GPT-4o
+- Connects to remote Colab LLM via Ngrok or falls back to OpenAI
 - Maintains conversation history per session
 """
 
@@ -21,15 +20,17 @@ load_dotenv()
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
-# HuggingFace Inference API
+# LLM Configuration
 # ---------------------------------------------------------------------------
-HF_API_TOKEN = os.environ.get("HF_API_TOKEN", "")
-HF_MODEL = os.environ.get("HF_MODEL", "meta-llama/Llama-3.3-70B-Instruct")
-HF_API_URL = f"https://router.huggingface.co/hf-inference/models/{HF_MODEL}/v1/chat/completions"
+NGROK_LLM_URL = os.environ.get("NGROK_LLM_URL", "")
 
-# OpenAI fallback
-openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
-OPENAI_MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o")
+if NGROK_LLM_URL:
+    # Trick the OpenAI client into talking to our remote Ollama server
+    main_client = OpenAI(base_url=f"{NGROK_LLM_URL}/v1", api_key="ollama")
+    MAIN_MODEL = "llama3.1:8b" # Used in colab notebook
+else:
+    main_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+    MAIN_MODEL = os.environ.get("OPENAI_MODEL", "gpt-4o")
 
 SYSTEM_PROMPT = """You are Jali, a bilingual (Swahili/English) AI health assistant for social workers in Kenya.
 
@@ -48,7 +49,7 @@ Rules:
 4. Be concise, empathetic, and culturally appropriate for Kenya.
 5. For serious medical decisions, always advise consulting a doctor or clinic.
 6. Never fabricate medical information. Say "sijui" (I don't know) if unsure.
-7. Keep responses under 200 words unless the user asks for detail."""
+7. Keep responses under 150 words unless the user asks for detail."""
 
 
 class JaliChatService:
@@ -57,12 +58,12 @@ class JaliChatService:
     def __init__(self):
         self.vector_store = JaliVectorStore()
         self.conversations: Dict[str, List[dict]] = {}  # session_id -> messages
-        self.use_hf = bool(HF_API_TOKEN)
+        self.use_ngrok = bool(NGROK_LLM_URL)
 
-        if self.use_hf:
-            logger.info(f"Using HuggingFace model: {HF_MODEL}")
+        if self.use_ngrok:
+            logger.info(f"Using remote Colab model via Ngrok: {MAIN_MODEL} at {NGROK_LLM_URL}")
         else:
-            logger.info(f"Using OpenAI model: {OPENAI_MODEL} (set HF_API_TOKEN for HuggingFace)")
+            logger.info(f"Using OpenAI fallback model: {MAIN_MODEL}")
 
     def _get_history(self, session_id: str) -> List[dict]:
         """Get or create conversation history."""
@@ -88,40 +89,12 @@ class JaliChatService:
             logger.warning(f"RAG search failed: {e}")
             return ""
 
-    def _call_hf(self, messages: List[dict]) -> str:
-        """Call HuggingFace Inference API."""
-        headers = {
-            "Authorization": f"Bearer {HF_API_TOKEN}",
-            "Content-Type": "application/json",
-        }
-        payload = {
-            "model": HF_MODEL,
-            "messages": messages,
-            "max_tokens": 500,
-            "temperature": 0.7,
-        }
-
-        resp = requests.post(HF_API_URL, headers=headers, json=payload, timeout=60)
-        resp.raise_for_status()
-        data = resp.json()
-        return data["choices"][0]["message"]["content"].strip()
-
-    def _call_openai(self, messages: List[dict]) -> str:
-        """Call OpenAI API."""
-        response = openai_client.chat.completions.create(
-            model=OPENAI_MODEL,
-            messages=messages,
-            max_tokens=500,
-            temperature=0.7,
-        )
-        return response.choices[0].message.content.strip()
-
     def chat(self, user_message: str, session_id: str = "default") -> dict:
         """
         Process a chat message:
         1. Retrieve RAG context
         2. Build message history
-        3. Call LLM (HF or OpenAI)
+        3. Call LLM
         4. Store in history
         """
         history = self._get_history(session_id)
@@ -141,25 +114,38 @@ class JaliChatService:
 
         # Call LLM
         try:
-            if self.use_hf:
-                response_text = self._call_hf(messages)
-            else:
-                response_text = self._call_openai(messages)
+            response = main_client.chat.completions.create(
+                model=MAIN_MODEL,
+                messages=messages,
+                max_tokens=600,
+                temperature=0.7,
+            )
+            response_text = response.choices[0].message.content.strip()
+            
         except Exception as e:
             logger.error(f"LLM call failed: {e}")
-            # Try fallback
+            # Try free tier public unauthenticated HF as last resort
             try:
-                if self.use_hf:
-                    response_text = self._call_openai(messages)
-                    logger.info("Fell back to OpenAI")
-                else:
-                    raise e
-            except Exception as e2:
-                logger.error(f"Fallback also failed: {e2}")
+                logger.info("Attempting unauthenticated free HF endpoint fallback...")
+                api_url = "https://api-inference.huggingface.co/models/microsoft/Phi-3-mini-4k-instruct"
+                prompt = "\n".join([f"{m['role']}: {m['content']}" for m in messages]) + "\nassistant: "
+                
+                resp = requests.post(
+                    api_url, 
+                    headers={"Content-Type": "application/json"}, 
+                    json={"inputs": prompt[-2000:], "parameters": {"max_new_tokens": 150}},
+                    timeout=15
+                )
+                resp.raise_for_status()
+                result = resp.json()
+                response_text = result[0]["generated_text"].split("assistant: ")[-1].strip()
+                logger.info("Public HF fallback succeeded!")
+            except Exception as e3:
+                logger.error(f"Public HF also failed: {e3}")
                 response_text = (
-                    "Samahani, kuna tatizo la muda. Tafadhali jaribu tena."
-                    if any(c in user_message.lower() for c in ["habari", "saidia", "nataka", "tafadhali"])
-                    else "Sorry, there was a temporary issue. Please try again."
+                    "Samahani, kuna tatizo la muda kwenye mtandao. Tafadhali hakikisha Colab yako ipo online."
+                    if any(c in user_message.lower() for c in ["habari", "saidia", "nataka", "tafadhali", "jambo"])
+                    else "Sorry, the AI server is offline. Please make sure your Colab notebook is running."
                 )
 
         # Store in conversation history
