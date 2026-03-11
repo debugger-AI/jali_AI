@@ -17,7 +17,11 @@ mlflow.set_experiment("Jali_AI_Agents")
 # We will enable autologging for OpenAI
 mlflow.openai.autolog()
 
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+client = OpenAI(
+    api_key=os.environ.get("OPENAI_API_KEY"),
+    base_url=os.environ.get("OPENAI_BASE_URL"),
+    default_headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"}
+)
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -25,7 +29,7 @@ logging.basicConfig(level=logging.INFO)
 class LLMService:
     def __init__(self):
         # We can also handle specific prompts and context here
-        self.model = os.environ.get("OPENAI_MODEL", "gpt-4o")
+        self.model = os.environ.get("OPENAI_MODEL", "qwen3.5-flash")
 
     def generate_alert_message(self, context: dict) -> str:
         """

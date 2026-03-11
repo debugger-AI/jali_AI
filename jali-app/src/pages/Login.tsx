@@ -54,6 +54,7 @@ const Login = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    localStorage.setItem("jali_role", selectedRole);
     navigate("/dashboard");
   };
 
@@ -83,13 +84,7 @@ const Login = () => {
         </div>
 
         <div className="relative z-10 flex flex-col justify-between p-12 text-white w-full">
-          {/* Large Logo Only */}
-          <div className="flex justify-center pt-6">
-            <a href="#">
-              <img src={jaliLogo} alt="Jali.ai Logo" className="h-32 w-auto brightness-0 invert drop-shadow-2xl opacity-90" />
-            </a>
-          </div>
-
+          {/* Large Logo Only - REMOVED for right panel placement */}
           {/* Content */}
           <div className="space-y-8">
             <h2 className="text-4xl font-light leading-tight drop-shadow-md">
@@ -157,8 +152,8 @@ const Login = () => {
       {/* Right Panel - Login Form */}
       <div className="flex-1 flex items-center justify-center p-8 bg-background">
         <div className="w-full max-w-md space-y-8">
-          {/* Mobile logo */}
-          <div className="lg:hidden flex justify-center mb-6">
+          {/* Logo - Visible on all screens */}
+          <div className="flex justify-center mb-6">
             <a href="#">
               <img src={jaliLogo} alt="Jali.ai Logo" className="h-28 w-auto" />
             </a>
@@ -174,6 +169,33 @@ const Login = () => {
                 ? "Join the community of social workers using AI"
                 : "Sign in to continue your impact journey"}
             </p>
+          </div>
+
+          {/* Mobile Role Selection */}
+          <div className="lg:hidden space-y-3">
+            <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">I am a</p>
+            <div className="flex bg-muted/50 p-1 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setSelectedRole("chv")}
+                className={`flex-1 py-3 text-sm font-medium rounded-lg transition-all ${selectedRole === "chv"
+                  ? "bg-white text-primary shadow-sm ring-1 ring-border/50"
+                  : "text-muted-foreground hover:text-foreground"
+                  }`}
+              >
+                CHV
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedRole("case_manager")}
+                className={`flex-1 py-3 text-sm font-medium rounded-lg transition-all ${selectedRole === "case_manager"
+                  ? "bg-white text-primary shadow-sm ring-1 ring-border/50"
+                  : "text-muted-foreground hover:text-foreground"
+                  }`}
+              >
+                Case Manager
+              </button>
+            </div>
           </div>
 
           {/* Form */}

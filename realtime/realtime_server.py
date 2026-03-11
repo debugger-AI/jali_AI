@@ -1,9 +1,13 @@
 import os
 import json
 import asyncio
+import uuid
+import psycopg2
+from datetime import datetime
+from pydantic import BaseModel
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from confluent_kafka import Consumer, KafkaError
+from confluent_kafka import Consumer, Producer, KafkaError
 import snowflake.connector
 from dotenv import load_dotenv
 
@@ -35,6 +39,23 @@ def get_snowflake_conn():
         schema=os.getenv('SNOWFLAKE_SCHEMA', 'RAW'),
         role=os.getenv('SNOWFLAKE_ROLE', 'ACCOUNTADMIN')
     )
+
+# Postgres configuration
+def get_postgres_conn():
+    return psycopg2.connect(
+        host=os.getenv("DB_HOST", "localhost"),
+        database=os.getenv("DB_NAME", "jali_oltp"),
+        user=os.getenv("DB_USER", "postgres"),
+        password=os.getenv("DB_PASS", "password"),
+        port=os.getenv("DB_PORT", "5432")
+    )
+
+class HouseholdCreate(BaseModel):
+    chv_id: str
+    county_name: str
+    constituency_name: str
+    ward_name: str
+    cbo_id: str = None
 
 class ConnectionManager:
     def __init__(self):
@@ -102,6 +123,71 @@ async def kafka_consumer_loop():
     finally:
         if 'consumer' in locals(): consumer.close()
 
+# ----------------------------------------------------
+# Postgres Endpoints
+# ----------------------------------------------------
+
+@app.get("/api/chvs")
+async def get_chvs():
+    """Fetch all CHVs to populate dropdowns or assignments"""
+    try:
+        conn = get_postgres_conn()
+        cur = conn.cursor()
+        cur.execute("SELECT chv_id, chv_name FROM CHVs")
+        chvs = [{"id": row[0], "name": row[1]} for row in cur.fetchall()]
+        return {"chvs": chvs}
+    except Exception as e:
+        return {"error": str(e), "chvs": []}
+    finally:
+        if 'conn' in locals(): conn.close()
+
+@app.post("/api/households")
+async def create_household(req: HouseholdCreate):
+    """Register a new household/family in Postgres and emit event to Kafka"""
+    try:
+        conn = get_postgres_conn()
+        cur = conn.cursor()
+        
+        # Generate a new unique ID for the household
+        household_id = f"HH-{uuid.uuid4().hex[:8].upper()}"
+        
+        # Insert into Postgres
+        query = """
+            INSERT INTO households 
+            (household_id, chv_id, cbo_id, ward_name, constituency_name, county_name) 
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """
+        cur.execute(query, (
+            household_id, req.chv_id, req.cbo_id, 
+            req.ward_name, req.constituency_name, req.county_name
+        ))
+        conn.commit()
+        
+        # Stream event directly to Kafka
+        try:
+            producer_conf = {'bootstrap.servers': KAFKA_BOOTSTRAP_SERVERS, 'client.id': 'jali-api'}
+            producer = Producer(producer_conf)
+            record = {
+                "household_id": household_id,
+                "chv_id": req.chv_id,
+                "ward_name": req.ward_name,
+                "county_name": req.county_name,
+                "timestamp": datetime.now().isoformat()
+            }
+            producer.produce("jali.sync.households", key=household_id, value=json.dumps(record).encode('utf-8'))
+            producer.flush(timeout=2.0)
+        except Exception as kafka_err:
+            print(f"Kafka emit warning: {kafka_err}")
+            
+        return {"status": "success", "household_id": household_id}
+    except Exception as e:
+        return {"error": str(e)}
+    finally:
+        if 'conn' in locals(): conn.close()
+
+# ----------------------------------------------------
+# Dashboard Stats & Snowflake
+# ----------------------------------------------------
 @app.get("/api/stats")
 async def get_dashboard_stats():
     """Fetch live stats from Snowflake"""

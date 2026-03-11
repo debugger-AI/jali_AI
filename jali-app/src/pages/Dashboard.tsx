@@ -61,6 +61,10 @@ const Dashboard = () => {
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
 
+  // Role info
+  const role = localStorage.getItem("jali_role") || "chv";
+  const isManager = role === "case_manager";
+
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -143,9 +147,8 @@ const Dashboard = () => {
       {/* ── HEADER ── */}
       <div className="flex items-start justify-between mb-8">
         <div>
-          <p className="text-sm text-slate-400 mb-1">{new Date().toLocaleDateString("en-KE", { weekday: "long", month: "long", day: "numeric" })}</p>
-          <h1 className="text-2xl font-medium text-slate-900">
-            {greeting}, <span className="font-semibold">Amara</span>
+          <h1 className="text-2xl font-semibold bg-gradient-to-r from-primary to-emerald-600 bg-clip-text text-transparent">
+            {greeting}
           </h1>
         </div>
         <div className="flex items-center gap-2">
@@ -158,15 +161,19 @@ const Dashboard = () => {
 
       {/* ── STATS ROW ── */}
       <div className="grid grid-cols-3 gap-4 mb-8">
-        {[
-          { label: "Active Cases", value: val("activeCases", "24"), sub: "+3 this week" },
-          { label: "Families Reached", value: val("familiesReached", "156"), sub: "+12 this month" },
-          { label: "Field Visits", value: val("healthVisits", "48"), sub: "+8 this week" },
-        ].map(s => (
-          <div key={s.label} className="bg-white border border-slate-150 rounded-xl p-5">
-            <p className="text-xs text-slate-400 uppercase tracking-wide mb-1">{s.label}</p>
-            <p className="text-2xl font-semibold text-slate-900">{s.value}</p>
-            <p className="text-xs text-slate-400 mt-1">{s.sub}</p>
+        {(isManager ? [
+          { label: "Active CHVs", value: "12", sub: "+2 this month", color: "bg-blue-50 border-blue-100 text-blue-900" },
+          { label: "Families Reached", value: val("familiesReached", "1,204"), sub: "+45 this week", color: "bg-amber-50 border-amber-100 text-amber-900" },
+          { label: "Urgent Escaltions", value: "7", sub: "-2 from yesterday", color: "bg-red-50 border-red-100 text-red-900" },
+        ] : [
+          { label: "Active Cases", value: val("activeCases", "24"), sub: "+3 this week", color: "bg-emerald-50 border-emerald-100 text-emerald-900" },
+          { label: "Families Reached", value: val("familiesReached", "156"), sub: "+12 this month", color: "bg-blue-50 border-blue-100 text-blue-900" },
+          { label: "Field Visits", value: val("healthVisits", "48"), sub: "+8 this week", color: "bg-purple-50 border-purple-100 text-purple-900" },
+        ]).map(s => (
+          <div key={s.label} className={cn("border rounded-xl p-5 shadow-sm", s.color)}>
+            <p className="text-xs uppercase tracking-wide mb-1 opacity-70 font-semibold">{s.label}</p>
+            <p className="text-3xl font-bold">{s.value}</p>
+            <p className="text-xs mt-1 opacity-60 font-medium">{s.sub}</p>
           </div>
         ))}
       </div>
@@ -177,42 +184,46 @@ const Dashboard = () => {
         {/* LEFT — 8 cols */}
         <div className="lg:col-span-8 space-y-6">
 
-          {/* Agents Orchestration */}
-          <div className="bg-white border border-slate-150 rounded-xl">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <img src={jaliLogo} alt="" className="h-5 w-5" />
-                <h2 className="text-sm font-semibold text-slate-900">Agent Orchestration</h2>
-              </div>
-              <span className="text-xs text-slate-400">4 agents</span>
-            </div>
-            <div className="divide-y divide-slate-50">
-              {agents.map(a => (
-                <div key={a.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-25 transition-colors group">
-                  <div className="flex items-center gap-2 min-w-[140px]">
-                    {statusIcon[a.status as keyof typeof statusIcon]}
-                    <span className="text-sm font-medium text-slate-700">{a.name}</span>
-                  </div>
-                  <div className="flex-1 flex items-center gap-6 text-xs text-slate-400">
-                    <span>Accuracy <span className="text-slate-600 font-medium">{a.accuracy}</span></span>
-                    <span>Records <span className="text-slate-600 font-medium">{a.records}</span></span>
-                    <span>Last run <span className="text-slate-600 font-medium">{a.lastRun}</span></span>
-                  </div>
-                  <span className={cn(
-                    "text-[10px] font-medium uppercase tracking-wide px-2 py-0.5 rounded",
-                    a.status === "active" ? "text-green-600 bg-green-50" : "text-slate-400 bg-slate-50"
-                  )}>
-                    {a.status}
-                  </span>
+          {/* Agents Orchestration - Manager Only */}
+          {isManager && (
+            <div className="bg-white border border-slate-150 rounded-xl shadow-sm">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <img src={jaliLogo} alt="" className="h-5 w-5" />
+                  <h2 className="text-sm font-semibold text-slate-900">Agent Orchestration Overview</h2>
                 </div>
-              ))}
+                <span className="text-xs font-medium text-slate-400 bg-slate-100 px-2 py-1 rounded">4 agents live</span>
+              </div>
+              <div className="divide-y divide-slate-50">
+                {agents.map(a => (
+                  <div key={a.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50 transition-colors group">
+                    <div className="flex items-center gap-2 min-w-[140px]">
+                      {statusIcon[a.status as keyof typeof statusIcon]}
+                      <span className="text-sm font-medium text-slate-700">{a.name}</span>
+                    </div>
+                    <div className="flex-1 flex items-center gap-6 text-xs text-slate-400">
+                      <span>Accuracy <span className="text-slate-600 font-medium">{a.accuracy}</span></span>
+                      <span>Records <span className="text-slate-600 font-medium">{a.records}</span></span>
+                      <span>Last run <span className="text-slate-600 font-medium">{a.lastRun}</span></span>
+                    </div>
+                    <span className={cn(
+                      "text-[10px] font-medium uppercase tracking-wide px-2 py-0.5 rounded",
+                      a.status === "active" ? "text-green-600 bg-green-50" : "text-slate-400 bg-slate-50"
+                    )}>
+                      {a.status}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Priority Cases */}
-          <div className="bg-white border border-slate-150 rounded-xl">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-              <h2 className="text-sm font-semibold text-slate-900">Priority Cases</h2>
+          <div className="bg-white border border-emerald-100 rounded-xl shadow-[0_4px_20px_-10px_rgba(16,185,129,0.1)]">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-emerald-50 bg-emerald-50/30">
+              <h2 className="text-sm font-semibold text-slate-900">
+                {isManager ? "Escalated Priority Cases" : "My Priority Cases"}
+              </h2>
               <button className="text-xs text-blue-600 hover:underline">View all</button>
             </div>
             <div className="divide-y divide-slate-50">
@@ -251,42 +262,44 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Schedule */}
-          <div className="bg-white border border-slate-150 rounded-xl">
-            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-              <div className="flex items-center gap-2">
-                <CalendarDays className="h-4 w-4 text-slate-400" />
-                <h2 className="text-sm font-semibold text-slate-900">Today's Visits</h2>
-              </div>
-              <span className="text-xs text-slate-400">3 scheduled</span>
-            </div>
-            <div className="p-5 space-y-0">
-              {[
-                { time: "09:00", name: "Grace Wanjiku", task: "Prenatal checkup", done: true },
-                { time: "11:30", name: "Samuel Oduor", task: "Growth monitoring", done: false },
-                { time: "14:00", name: "Fatuma Ali", task: "Vaccination follow-up", done: false },
-              ].map((v, i) => (
-                <div key={i} className="flex gap-3">
-                  <div className="flex flex-col items-center">
-                    {v.done ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5" />
-                    ) : (
-                      <Circle className={cn("h-4 w-4 mt-0.5", i === 1 ? "text-blue-500 fill-blue-500" : "text-slate-200")} />
-                    )}
-                    {i < 2 && <div className="w-px flex-1 min-h-[28px] bg-slate-100" />}
-                  </div>
-                  <div className={cn("pb-5 flex-1", v.done && "opacity-50")}>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-mono text-slate-400">{v.time}</span>
-                      {i === 1 && <span className="text-[9px] font-semibold uppercase text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">now</span>}
-                    </div>
-                    <p className="text-sm text-slate-700 font-medium mt-0.5">{v.name}</p>
-                    <p className="text-xs text-slate-400">{v.task}</p>
-                  </div>
+          {/* Schedule - CHV Only */}
+          {!isManager && (
+            <div className="bg-white border border-blue-100 rounded-xl shadow-[0_4px_20px_-10px_rgba(59,130,246,0.1)]">
+              <div className="flex items-center justify-between px-5 py-4 border-b border-blue-50 bg-blue-50/30">
+                <div className="flex items-center gap-2">
+                  <CalendarDays className="h-4 w-4 text-blue-500" />
+                  <h2 className="text-sm font-semibold text-slate-900">Today's Visits & Reminders</h2>
                 </div>
-              ))}
+                <span className="text-xs text-slate-400">3 scheduled</span>
+              </div>
+              <div className="p-5 space-y-0">
+                {[
+                  { time: "09:00", name: "Grace Wanjiku", task: "Prenatal checkup", done: true },
+                  { time: "11:30", name: "Samuel Oduor", task: "Growth monitoring", done: false },
+                  { time: "14:00", name: "Fatuma Ali", task: "Vaccination follow-up", done: false },
+                ].map((v, i) => (
+                  <div key={i} className="flex gap-3">
+                    <div className="flex flex-col items-center">
+                      {v.done ? (
+                        <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5" />
+                      ) : (
+                        <Circle className={cn("h-4 w-4 mt-0.5", i === 1 ? "text-blue-500 fill-blue-500" : "text-slate-200")} />
+                      )}
+                      {i < 2 && <div className="w-px flex-1 min-h-[28px] bg-slate-100" />}
+                    </div>
+                    <div className={cn("pb-5 flex-1", v.done && "opacity-50")}>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-mono text-slate-400">{v.time}</span>
+                        {i === 1 && <span className="text-[9px] font-semibold uppercase text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">now</span>}
+                      </div>
+                      <p className="text-sm text-slate-700 font-medium mt-0.5">{v.name}</p>
+                      <p className="text-xs text-slate-500">{v.task}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* RIGHT — 4 cols */}

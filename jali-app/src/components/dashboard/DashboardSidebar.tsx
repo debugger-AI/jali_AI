@@ -10,6 +10,10 @@ import {
   LogOut,
   Bell,
   Cpu,
+  Calendar,
+  BookOpen,
+  Activity,
+  Radio
 } from "lucide-react";
 import {
   Sidebar,
@@ -27,24 +31,43 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import jaliLogo from "@/assets/jali-logo.svg";
 
-const mainNav = [
+const chvNav = [
   { title: "Home", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Cases", url: "/dashboard/cases", icon: null, badge: "12" },
-  { title: "Community", url: "/dashboard/community", icon: null },
-  { title: "Field Map", url: "/dashboard/map", icon: null },
-  { title: "Analytics", url: "/dashboard/analytics", icon: null },
+  { title: "My Cases", url: "/dashboard/cases", icon: null, badge: "12" },
+  { title: "Appointments", url: "/dashboard/appointments", icon: null },
+  { title: "Education", url: "/dashboard/community", icon: null },
+  { title: "AI Assistant", url: "/dashboard/assistant", icon: null },
 ];
 
-const toolsNav = [
-  { title: "Agents", url: "/dashboard/agents", icon: Cpu },
-  { title: "Messages", url: "/dashboard/messages", icon: MessageSquare },
-  { title: "Notifications", url: "/dashboard/notifications", icon: Bell },
+const chvTools = [
+  { title: "Messages", url: "/dashboard/messages", icon: null },
+  { title: "Notifications", url: "/dashboard/notifications", icon: null },
+];
+
+const managerNav = [
+  { title: "Overview", url: "/dashboard", icon: LayoutDashboard },
+  { title: "Field Team", url: "/dashboard/team", icon: null },
+  { title: "Analytics", url: "/dashboard/analytics", icon: null },
+  { title: "Field Map", url: "/dashboard/map", icon: null },
+  { title: "Broadcast", url: "/dashboard/broadcast", icon: null },
+  { title: "AI Assistant", url: "/dashboard/assistant", icon: null },
+];
+
+const managerTools = [
+  { title: "Agents", url: "/dashboard/agents", icon: null },
+  { title: "Approvals", url: "/dashboard/approvals", icon: null, badge: "5" },
+  { title: "Notifications", url: "/dashboard/notifications", icon: null },
 ];
 
 export function DashboardSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const currentPath = location.pathname;
+
+  const role = localStorage.getItem("jali_role") || "chv";
+  const mainNav = role === "case_manager" ? managerNav : chvNav;
+  const toolsNav = role === "case_manager" ? managerTools : chvTools;
+  const roleLabel = role === "case_manager" ? "Case Manager" : "Community Health Volunteer";
 
   const isActive = (path: string) => {
     if (path === "/dashboard") return currentPath === "/dashboard";
@@ -114,7 +137,7 @@ export function DashboardSidebar() {
                       : "text-slate-500 hover:bg-slate-50 hover:text-slate-700"
                       }`}
                   >
-                    <item.icon className="h-4 w-4" />
+                    {item.icon && <item.icon className="h-4 w-4" />}
                     <span>{item.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -147,7 +170,7 @@ export function DashboardSidebar() {
           </Avatar>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-slate-700 truncate">Amara Kimani</p>
-            <p className="text-[10px] text-slate-400 truncate">Field Coordinator</p>
+            <p className="text-[10px] text-slate-400 truncate">{roleLabel}</p>
           </div>
           <button onClick={() => navigate("/")} className="text-slate-300 hover:text-red-500 transition-colors">
             <LogOut className="h-4 w-4" />
