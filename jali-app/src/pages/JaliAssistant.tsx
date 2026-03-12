@@ -47,7 +47,7 @@ export default function JaliAssistant() {
 
         try {
             // Send query to Jali AI API Server endpoint
-            const response = await fetch("http://localhost:8001/api/chat", {
+            const response = await fetch("http://localhost:8000/api/chat", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

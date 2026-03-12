@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import DashboardLayout from "./components/dashboard/DashboardLayout";
@@ -10,8 +10,16 @@ import Cases from "./pages/Cases";
 import Team from "./pages/Team";
 import GenericPage from "./pages/GenericPage";
 import JaliAssistant from "./pages/JaliAssistant";
+import FloatingChatButton from "./components/FloatingChatButton";
 
 const queryClient = new QueryClient();
+
+// Hide the chat button on the root/login page
+const GlobalChatButton = () => {
+  const location = useLocation();
+  if (location.pathname === "/") return null;
+  return <FloatingChatButton />;
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -38,6 +46,7 @@ const App = () => (
           </Route>
           <Route path="*" element={<Login />} />
         </Routes>
+        <GlobalChatButton />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

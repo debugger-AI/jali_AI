@@ -14,7 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ["Outfit", "sans-serif"],
+        sans: ["Space Grotesk", "sans-serif"],
+        display: ["Syne", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",

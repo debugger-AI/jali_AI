@@ -8,23 +8,12 @@ import {
 import { useRealtime } from "@/hooks/useRealtime";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
+import { Calendar } from "@/components/ui/calendar";
 import jaliLogo from "@/assets/jali-logo.svg";
 
 const API_BASE = "http://localhost:8000";
 
-// ── Agents ──────────────────────────────────────────────
-const agents = [
-  { id: "hiv", name: "HIV Adherence", status: "active", lastRun: "2h ago", accuracy: "94.2%", records: "1,247" },
-  { id: "tb", name: "TB Treatment", status: "active", lastRun: "3h ago", accuracy: "91.8%", records: "863" },
-  { id: "imm", name: "Immunization", status: "idle", lastRun: "6h ago", accuracy: "96.1%", records: "2,104" },
-  { id: "fp", name: "Family Planning", status: "active", lastRun: "1h ago", accuracy: "89.5%", records: "956" },
-];
 
-const statusIcon = {
-  active: <Circle className="h-2 w-2 fill-green-500 text-green-500" />,
-  idle: <Circle className="h-2 w-2 fill-slate-300 text-slate-300" />,
-  error: <AlertTriangle className="h-3 w-3 text-red-500" />,
-};
 
 // ── Cases ───────────────────────────────────────────────
 const cases = [
@@ -39,24 +28,16 @@ const urgencyLabel: Record<string, { text: string; cls: string }> = {
   low: { text: "Routine", cls: "text-green-600 bg-green-50" },
 };
 
-// ── Chat Types ──────────────────────────────────────────
-interface Msg { role: "user" | "assistant"; text: string; audio?: string; }
+
 
 // ═════════════════════════════════════════════════════════
 const Dashboard = () => {
   const { events, isConnected } = useRealtime();
   const [stats, setStats] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [date, setDate] = useState<Date | undefined>(new Date());
 
-  // Chat
-  const [chatInput, setChatInput] = useState("");
-  const [messages, setMessages] = useState<Msg[]>([]);
-  const [isSending, setIsSending] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
-  const [isProcessingVoice, setIsProcessingVoice] = useState(false);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
-  const chatEndRef = useRef<HTMLDivElement>(null);
+
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
@@ -77,67 +58,7 @@ const Dashboard = () => {
     return () => clearInterval(iv);
   }, []);
 
-  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
-  // ── Text chat ──
-  const sendText = async () => {
-    const text = chatInput.trim();
-    if (!text || isSending) return;
-    setChatInput("");
-    setMessages(p => [...p, { role: "user", text }]);
-    setIsSending(true);
-    try {
-      const res = await fetch(`${API_BASE}/api/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, session_id: "dashboard" }),
-      });
-      const data = await res.json();
-      setMessages(p => [...p, { role: "assistant", text: data.response || data.error || "No response" }]);
-    } catch {
-      setMessages(p => [...p, { role: "assistant", text: "Server offline. Try again later." }]);
-    }
-    setIsSending(false);
-  };
-
-  // ── Voice record ──
-  const startRec = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mr = new MediaRecorder(stream, { mimeType: "audio/webm" });
-      audioChunksRef.current = [];
-      mr.ondataavailable = e => { if (e.data.size > 0) audioChunksRef.current.push(e.data); };
-      mr.onstop = async () => {
-        stream.getTracks().forEach(t => t.stop());
-        const blob = new Blob(audioChunksRef.current, { type: "audio/webm" });
-        setIsProcessingVoice(true);
-        try {
-          const fd = new FormData();
-          fd.append("audio", blob, "rec.webm");
-          fd.append("user_id", "dashboard");
-          const res = await fetch(`${API_BASE}/api/voice/chat`, { method: "POST", body: fd });
-          const data = await res.json();
-          setMessages(p => [...p, { role: "user", text: data.transcript }]);
-          setMessages(p => [...p, { role: "assistant", text: data.response_text, audio: data.response_audio }]);
-          if (data.response_audio) {
-            const bytes = Uint8Array.from(atob(data.response_audio), c => c.charCodeAt(0));
-            const url = URL.createObjectURL(new Blob([bytes], { type: "audio/mp3" }));
-            new Audio(url).play().catch(() => { });
-          }
-        } catch { setMessages(p => [...p, { role: "assistant", text: "Voice processing failed." }]); }
-        setIsProcessingVoice(false);
-      };
-      mediaRecorderRef.current = mr;
-      mr.start();
-      setIsRecording(true);
-    } catch { /* mic denied */ }
-  };
-  const stopRec = () => { mediaRecorderRef.current?.stop(); setIsRecording(false); };
-
-  const playB64 = (b64: string) => {
-    const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
-    new Audio(URL.createObjectURL(new Blob([bytes], { type: "audio/mp3" }))).play().catch(() => { });
-  };
 
   const val = (k: string, fb: string) => isLoading ? "—" : stats?.[k]?.value || fb;
 
@@ -147,7 +68,7 @@ const Dashboard = () => {
       {/* ── HEADER ── */}
       <div className="flex items-start justify-between mb-8">
         <div>
-          <h1 className="text-2xl font-semibold bg-gradient-to-r from-primary to-emerald-600 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-display font-bold bg-gradient-to-r from-primary to-emerald-600 bg-clip-text text-transparent tracking-tight">
             {greeting}
           </h1>
         </div>
@@ -184,39 +105,7 @@ const Dashboard = () => {
         {/* LEFT — 8 cols */}
         <div className="lg:col-span-8 space-y-6">
 
-          {/* Agents Orchestration - Manager Only */}
-          {isManager && (
-            <div className="bg-white border border-slate-150 rounded-xl shadow-sm">
-              <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-                <div className="flex items-center gap-2">
-                  <img src={jaliLogo} alt="" className="h-5 w-5" />
-                  <h2 className="text-sm font-semibold text-slate-900">Agent Orchestration Overview</h2>
-                </div>
-                <span className="text-xs font-medium text-slate-400 bg-slate-100 px-2 py-1 rounded">4 agents live</span>
-              </div>
-              <div className="divide-y divide-slate-50">
-                {agents.map(a => (
-                  <div key={a.id} className="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50 transition-colors group">
-                    <div className="flex items-center gap-2 min-w-[140px]">
-                      {statusIcon[a.status as keyof typeof statusIcon]}
-                      <span className="text-sm font-medium text-slate-700">{a.name}</span>
-                    </div>
-                    <div className="flex-1 flex items-center gap-6 text-xs text-slate-400">
-                      <span>Accuracy <span className="text-slate-600 font-medium">{a.accuracy}</span></span>
-                      <span>Records <span className="text-slate-600 font-medium">{a.records}</span></span>
-                      <span>Last run <span className="text-slate-600 font-medium">{a.lastRun}</span></span>
-                    </div>
-                    <span className={cn(
-                      "text-[10px] font-medium uppercase tracking-wide px-2 py-0.5 rounded",
-                      a.status === "active" ? "text-green-600 bg-green-50" : "text-slate-400 bg-slate-50"
-                    )}>
-                      {a.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+
 
           {/* Priority Cases */}
           <div className="bg-white border border-emerald-100 rounded-xl shadow-[0_4px_20px_-10px_rgba(16,185,129,0.1)]">
@@ -305,89 +194,56 @@ const Dashboard = () => {
         {/* RIGHT — 4 cols */}
         <div className="lg:col-span-4 space-y-6">
 
-          {/* AI Assistant (Chat + Voice) */}
-          <div className="bg-white border border-slate-150 rounded-xl flex flex-col" style={{ height: "480px" }}>
-            <div className="flex items-center gap-2.5 px-5 py-4 border-b border-slate-100">
-              <img src={jaliLogo} alt="" className="h-5 w-5" />
-              <div>
-                <h3 className="text-sm font-semibold text-slate-900">Jali Assistant</h3>
-                <p className="text-[10px] text-slate-400">Swahili · English</p>
-              </div>
-              {messages.length > 0 && (
-                <button onClick={() => setMessages([])} className="ml-auto text-[10px] text-slate-400 hover:text-slate-600">Clear</button>
-              )}
+          {/* Tracking Calendar */}
+          <div className="bg-white border border-slate-150 rounded-xl shadow-[0_4px_20px_-10px_rgba(0,0,0,0.05)] overflow-hidden">
+            <div className="flex items-center gap-2 px-5 py-4 border-b border-slate-100 bg-slate-50/50">
+              <CalendarDays className="h-4 w-4 text-blue-500" />
+              <h3 className="text-sm font-semibold text-slate-900">Family & Individual Tracking</h3>
+            </div>
+            
+            <div className="p-4 flex flex-col items-center border-b border-slate-100">
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={setDate}
+                className="rounded-md"
+              />
             </div>
 
-            {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {messages.length === 0 && (
-                <div className="flex flex-col items-center justify-center h-full text-center py-8">
-                  <img src={jaliLogo} alt="" className="h-10 w-10 opacity-20 mb-3" />
-                  <p className="text-sm text-slate-400">Type or speak in Swahili or English</p>
-                  <p className="text-xs text-slate-300 mt-1">"Habari, nataka msaada..."</p>
-                </div>
-              )}
-              {messages.map((m, i) => (
-                <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={cn(
-                    "max-w-[85%] px-3.5 py-2.5 rounded-xl text-sm",
-                    m.role === "user"
-                      ? "bg-slate-800 text-white rounded-br-sm"
-                      : "bg-slate-50 text-slate-700 border border-slate-100 rounded-bl-sm"
-                  )}>
-                    <p className="leading-relaxed">{m.text}</p>
-                    {m.audio && m.role === "assistant" && (
-                      <button onClick={() => playB64(m.audio!)} className="mt-1.5 flex items-center gap-1 text-xs text-blue-500 hover:underline">
-                        <Volume2 className="h-3 w-3" /> Play
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
-              {(isSending || isProcessingVoice) && (
-                <div className="flex justify-start">
-                  <div className="bg-slate-50 border border-slate-100 rounded-xl rounded-bl-sm px-3.5 py-2.5">
-                    <Loader2 className="h-4 w-4 animate-spin text-slate-400" />
-                  </div>
-                </div>
-              )}
-              <div ref={chatEndRef} />
-            </div>
-
-            {/* Input bar */}
-            <div className="border-t border-slate-100 p-3">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={isRecording ? stopRec : startRec}
-                  disabled={isProcessingVoice}
-                  className={cn(
-                    "h-9 w-9 rounded-lg flex items-center justify-center shrink-0 transition-colors",
-                    isRecording ? "bg-red-500 text-white" : "bg-slate-50 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
-                  )}
-                >
-                  {isProcessingVoice ? <Loader2 className="h-4 w-4 animate-spin" /> :
-                    isRecording ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
-                </button>
-                <input
-                  type="text"
-                  value={chatInput}
-                  onChange={e => setChatInput(e.target.value)}
-                  onKeyDown={e => e.key === "Enter" && sendText()}
-                  placeholder={isRecording ? "Recording..." : "Type a message..."}
-                  disabled={isRecording}
-                  className="flex-1 h-9 px-3 rounded-lg bg-slate-50 border border-slate-100 text-sm text-slate-700 placeholder:text-slate-300 focus:outline-none focus:border-slate-200 disabled:opacity-50"
-                />
-                <button
-                  onClick={sendText}
-                  disabled={!chatInput.trim() || isSending}
-                  className="h-9 w-9 rounded-lg bg-slate-800 text-white flex items-center justify-center shrink-0 hover:bg-slate-700 disabled:opacity-30 transition-colors"
-                >
-                  <Send className="h-4 w-4" />
-                </button>
+            <div className="p-4 bg-slate-50/30">
+              <div className="flex items-center justify-between mb-4">
+                <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  Tracking for {date ? date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Selected Date"}
+                </h4>
+                <span className="text-[10px] bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">3 tasks</span>
               </div>
-              <p className="text-center text-[10px] text-slate-300 mt-2">
-                {isRecording ? "Listening..." : "Swahili & English voice supported"}
-              </p>
+              
+              <div className="space-y-4">
+                {/* Simulated individual tracking tasks */}
+                <div className="flex items-start gap-3">
+                  <div className="mt-1 w-2 h-2 rounded-full bg-red-400 shadow-[0_0_8px_rgba(248,113,113,0.5)] shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-slate-700 leading-tight">Aisha Kamau <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-50 text-red-600 ml-1">High Risk</span></p>
+                    <p className="text-xs text-slate-500 mt-1">Scheduled home visit for 3rd trimester vitals check.</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-3">
+                  <div className="mt-1 w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.5)] shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-slate-700 leading-tight">Ochieng Family <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-50 text-amber-600 ml-1">Follow-up</span></p>
+                    <p className="text-xs text-slate-500 mt-1">Ensure TB medication adherence (Day 14 checkpoint).</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="mt-1 w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.5)] shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-slate-700 leading-tight">Muthoni Infant <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-600 ml-1">Routine</span></p>
+                    <p className="text-xs text-slate-500 mt-1">Polio & BCG vaccine reminder at the clinic.</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 

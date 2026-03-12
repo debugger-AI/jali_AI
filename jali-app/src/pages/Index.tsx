@@ -5,7 +5,7 @@ import Services from "@/components/Services";
 import ImpactMap from "@/components/ImpactMap";
 import ImpactNumbers from "@/components/ImpactNumbers";
 import Footer from "@/components/Footer";
-
+import FloatingChatButton from "@/components/FloatingChatButton";
 
 const Index = () => {
   return (
@@ -19,7 +19,7 @@ const Index = () => {
         <ImpactNumbers />
       </main>
       <Footer />
-
+      <FloatingChatButton />
     </div>
   );
 };

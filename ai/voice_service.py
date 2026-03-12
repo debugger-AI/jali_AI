@@ -13,13 +13,25 @@ import requests
 from typing import Optional
 from dotenv import load_dotenv
 from openai import OpenAI
+from groq import Groq
 
 load_dotenv()
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+# OpenAI required for Whisper/TTS
+try:
+    openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY", "dummy"))
+except Exception:
+    openai_client = None
+
+# Groq required for LLM reasoning
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
+try:
+    groq_client = Groq(api_key=GROQ_API_KEY)
+except Exception:
+    groq_client = None
 
 
 class SwahiliVoiceService:
@@ -31,7 +43,7 @@ class SwahiliVoiceService:
     """
 
     def __init__(self):
-        self.model = os.environ.get("OPENAI_MODEL", "gpt-4o")
+        self.model = os.environ.get("GROQ_MODEL", "openai/gpt-oss-120b")
         self.whisper_model = "whisper-1"
         self.tts_model = "tts-1"
         self.tts_voice = "nova"  # warm, friendly voice
@@ -62,7 +74,9 @@ class SwahiliVoiceService:
                 tmp_path = tmp.name
 
             with open(tmp_path, "rb") as audio_file:
-                transcript = client.audio.transcriptions.create(
+                if not openai_client:
+                    raise Exception("OpenAI client missing for STT")
+                transcript = openai_client.audio.transcriptions.create(
                     model=self.whisper_model,
                     file=audio_file,
                     language="sw",  # Swahili language code
@@ -84,7 +98,9 @@ class SwahiliVoiceService:
         Works well with Swahili text.
         """
         try:
-            response = client.audio.speech.create(
+            if not openai_client:
+                raise Exception("OpenAI client missing for TTS")
+            response = openai_client.audio.speech.create(
                 model=self.tts_model,
                 voice=self.tts_voice,
                 input=text,
@@ -109,18 +125,20 @@ class SwahiliVoiceService:
         Returns dict with transcript, response text, and audio bytes.
         """
         # Step 1: Transcribe
-        transcript = self.transcribe_audio(audio_data, filename)
+        try:
+            transcript = self.transcribe_audio(audio_data, filename)
+        except Exception as e:
+            logger.error(f"STT error: {e}")
+            transcript = "Error capturing audio."
 
         # Step 2: LLM response
         try:
-            llm_response = client.chat.completions.create(
+            llm_response = groq_client.chat.completions.create(
                 model=self.model,
                 messages=[
                     {"role": "system", "content": self.system_prompt},
                     {"role": "user", "content": transcript}
                 ],
-                max_tokens=200,
-                temperature=0.7
             )
             response_text = llm_response.choices[0].message.content.strip()
         except Exception as e:
@@ -220,14 +238,12 @@ if __name__ == "__main__":
     svc = SwahiliVoiceService()
     print("[LLM Test] Sending Swahili text to LLM...")
     try:
-        response = client.chat.completions.create(
+        response = groq_client.chat.completions.create(
             model=svc.model,
             messages=[
                 {"role": "system", "content": svc.system_prompt},
                 {"role": "user", "content": "Habari, nataka kujua kuhusu ratiba ya chanjo ya mtoto wangu."}
             ],
-            max_tokens=200,
-            temperature=0.7
         )
         print(f"  Response: {response.choices[0].message.content.strip()}")
     except Exception as e:
