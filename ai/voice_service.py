@@ -12,26 +12,23 @@ import tempfile
 import requests
 from typing import Optional
 from dotenv import load_dotenv
-from openai import OpenAI
-from groq import Groq
+# Clients will be initialized lazily
+openai_client = None
+groq_client = None
 
-load_dotenv()
+def get_openai_client():
+    global openai_client
+    if openai_client is None:
+        from openai import OpenAI
+        openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY", "dummy"))
+    return openai_client
 
-logger = logging.getLogger(__name__)
-logging.basicConfig(level=logging.INFO)
-
-# OpenAI required for Whisper/TTS
-try:
-    openai_client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY", "dummy"))
-except Exception:
-    openai_client = None
-
-# Groq required for LLM reasoning
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
-try:
-    groq_client = Groq(api_key=GROQ_API_KEY)
-except Exception:
-    groq_client = None
+def get_groq_client():
+    global groq_client
+    if groq_client is None:
+        from groq import Groq
+        groq_client = Groq(api_key=os.environ.get("GROQ_API_KEY", ""))
+    return groq_client
 
 
 class SwahiliVoiceService:
@@ -74,9 +71,10 @@ class SwahiliVoiceService:
                 tmp_path = tmp.name
 
             with open(tmp_path, "rb") as audio_file:
-                if not openai_client:
+                client = get_openai_client()
+                if not client:
                     raise Exception("OpenAI client missing for STT")
-                transcript = openai_client.audio.transcriptions.create(
+                transcript = client.audio.transcriptions.create(
                     model=self.whisper_model,
                     file=audio_file,
                     language="sw",  # Swahili language code
@@ -98,9 +96,10 @@ class SwahiliVoiceService:
         Works well with Swahili text.
         """
         try:
-            if not openai_client:
+            client = get_openai_client()
+            if not client:
                 raise Exception("OpenAI client missing for TTS")
-            response = openai_client.audio.speech.create(
+            response = client.audio.speech.create(
                 model=self.tts_model,
                 voice=self.tts_voice,
                 input=text,
@@ -133,7 +132,8 @@ class SwahiliVoiceService:
 
         # Step 2: LLM response
         try:
-            llm_response = groq_client.chat.completions.create(
+            client = get_groq_client()
+            llm_response = client.chat.completions.create(
                 model=self.model,
                 messages=[
                     {"role": "system", "content": self.system_prompt},

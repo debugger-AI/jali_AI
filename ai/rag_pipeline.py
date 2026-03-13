@@ -1,10 +1,3 @@
-"""
-Jali RAG Pipeline
-- Ingests PDFs from RAG data/ into a ChromaDB vector store
-- Retrieves relevant context for user queries
-- Supports both English and Swahili queries
-"""
-
 import os
 import logging
 from pathlib import Path
